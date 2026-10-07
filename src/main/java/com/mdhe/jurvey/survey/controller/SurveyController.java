@@ -2,15 +2,20 @@ package com.mdhe.jurvey.survey.controller;
 
 import com.mdhe.jurvey.survey.controller.types.AddTextDataPointRequest;
 import com.mdhe.jurvey.survey.controller.types.CreateSurveyRequest;
+import com.mdhe.jurvey.survey.controller.types.Survey.BasicSurveyResDTO;
+import com.mdhe.jurvey.survey.controller.types.Survey.DetailedSurveyResDTO;
 import com.mdhe.jurvey.survey.schema.SurveySchema;
 import com.mdhe.jurvey.survey.service.SurveyService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@CrossOrigin
 @RequestMapping("/survey")
+@Tag(name="Survey API", description="Survey Management API")
 public class SurveyController {
 
     private final SurveyService surveyService;
@@ -21,17 +26,22 @@ public class SurveyController {
     }
 
     @GetMapping("/")
-    public List<SurveySchema> getAllSurvey(){
-        return this.surveyService.getAllSurvey();
+    public List<BasicSurveyResDTO> getAllSurvey(){
+        return surveyService.getAllSurvey().stream().map(BasicSurveyResDTO::new).toList();
+    }
+
+    @GetMapping("/{id}")
+    public DetailedSurveyResDTO getSurvey(@PathVariable String id){
+        return new DetailedSurveyResDTO(surveyService.getSurvey(id));
     }
 
     @PostMapping("/")
-    public SurveySchema createSurvey(@RequestBody CreateSurveyRequest req){
-        return this.surveyService.createSurvey(req.name);
+    public BasicSurveyResDTO createSurvey(@RequestBody CreateSurveyRequest req){
+        return new BasicSurveyResDTO(surveyService.createSurvey(req.name));
     }
 
     @PostMapping("/datapoint/text")
-    public SurveySchema addTextDatapoint(@RequestBody AddTextDataPointRequest req){
-        return this.surveyService.createSurveyDataPointText(req.surveyId,req.label);
+    public BasicSurveyResDTO addTextDatapoint(@RequestBody AddTextDataPointRequest req){
+        return new BasicSurveyResDTO(surveyService.createSurveyDataPointText(req.surveyId,req.label));
     }
 }

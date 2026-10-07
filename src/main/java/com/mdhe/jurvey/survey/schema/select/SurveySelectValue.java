@@ -2,6 +2,7 @@ package com.mdhe.jurvey.survey.schema.select;
 
 import com.mdhe.jurvey.survey.schema.SurveyDataPoint;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,10 +15,12 @@ public class SurveySelectValue
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Getter
+    @NotNull
     private String id;
 
     @Getter
     @Setter
+    @NotNull
     private String value;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -25,7 +28,8 @@ public class SurveySelectValue
     @Setter
     private SurveyDataPoint selectDataPoint;
 
-    public SurveySelectValue(String value){
+    public SurveySelectValue(String value, SurveyDataPointSelect select){
         this.value = value;
+        this.selectDataPoint = select;
     }
 }

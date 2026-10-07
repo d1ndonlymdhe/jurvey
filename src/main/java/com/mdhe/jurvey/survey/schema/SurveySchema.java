@@ -1,6 +1,7 @@
 package com.mdhe.jurvey.survey.schema;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.List;
@@ -11,10 +12,12 @@ public class SurveySchema {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Getter
-    private String Id;
+    @NotNull
+    private String id;
 
     @Getter
     @Setter
+    @NotNull
     private String name;
 
     @OneToMany(
