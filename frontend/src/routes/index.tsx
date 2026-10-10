@@ -1,89 +1,129 @@
-import {createFileRoute, Link} from "@tanstack/react-router";
-import {BasicSurveyResDTO} from "./api/data-contracts.ts";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+    Anchor,
+    Box,
     Breadcrumbs,
     Button,
-    Container,
-    DataList,
+    Card,
+    Center,
+    Container, EmptyState,
     Flex,
-    Group,
-    Paper, Progress,
+    Group, Loader,
+    Paper,
     SimpleGrid,
     Stack, Table,
     Text,
     Title
 } from "@mantine/core";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { useSurveys } from "../queryHooks/useSurvey";
 
-export const Route = createFileRoute("/")({component: Index})
+export const Route = createFileRoute("/")({ component: Index })
 
 function Index() {
-    const surveys = [
-        { surveyName: 'Customer onboarding NPS (Q4)', status: 'Active',    questions: 14, responses: 1284, closes: new Date(2026, 9, 31),  owner: 'J. Moreau', lastEdited: new Date(2026, 9, 8, 10, 15) },
-        { surveyName: 'Employee pulse (October)',     status: 'Active',    questions: 9,  responses: 412,  closes: new Date(2026, 9, 15),  owner: 'R. Okafor', lastEdited: new Date(2026, 9, 7) },
-        { surveyName: 'Checkout friction study',      status: 'Active',    questions: 22, responses: 3907, closes: new Date(2026, 10, 12), owner: 'L. Chen',   lastEdited: new Date(2026, 9, 6) },
-        { surveyName: 'Webinar feedback: Data 101',   status: 'Scheduled', questions: 6,  responses: 0,    closes: new Date(2026, 9, 20),  owner: 'J. Moreau', lastEdited: new Date(2026, 9, 5) },
-        { surveyName: 'Pricing page concept test',    status: 'Draft',     questions: 18, responses: 0,    closes: new Date(2026, 10, 30), owner: 'A. Silva',  lastEdited: new Date(2026, 9, 5) },
-        { surveyName: 'Support CSAT (rolling)',       status: 'Active',    questions: 3,  responses: 9560, closes: new Date(2026, 11, 31), owner: 'R. Okafor', lastEdited: new Date(2026, 9, 3) },
-        { surveyName: 'Mobile app beta exit survey',  status: 'Closed',    questions: 11, responses: 736,  closes: new Date(2026, 8, 30),  owner: 'L. Chen',   lastEdited: new Date(2026, 8, 30) },
-        { surveyName: 'Brand awareness tracker W3',   status: 'Closed',    questions: 27, responses: 2001, closes: new Date(2026, 8, 22),  owner: 'A. Silva',  lastEdited: new Date(2026, 8, 22) },
-        { surveyName: 'Event registration form',      status: 'Draft',     questions: 8,  responses: 0,    closes: new Date(2026, 10, 15), owner: 'J. Moreau', lastEdited: new Date(2026, 8, 19) },
-        { surveyName: 'Partner satisfaction 2026',    status: 'Active',    questions: 16, responses: 188,  closes: new Date(2026, 11, 1),  owner: 'R. Okafor', lastEdited: new Date(2026, 8, 18) },
-        { surveyName: 'Feature request intake',       status: 'Active',    questions: 5,  responses: 1032, closes: new Date(2027, 2, 31),  owner: 'L. Chen',   lastEdited: new Date(2026, 8, 12) },
-        { surveyName: 'Q3 churn interviews screener', status: 'Closed',    questions: 12, responses: 340,  closes: new Date(2026, 8, 5),   owner: 'A. Silva',  lastEdited: new Date(2026, 8, 5) },
-    ];
+    const { data, isLoading } = useSurveys();
+    const surveys =
+        data ?
+            data.map(d => {
+                return {
+                    surveyName: d.name,
+                    status: 'Active',
+                    questions: d.questionCount,
+                    responses: 100,
+                    closes: new Date(),
+                    owner: 'BALEN SHAH',
+                    lastEdited: new Date(),
+                }
+            })
+            : [];
     return <Container fluid px={"lg"} py={"md"}>
         <Stack gap={"md"}>
             <Flex direction={"row"} justify={"space-between"} align={"end"}>
                 <Stack gap={"xs"}>
-                    <Breadcrumbs>
-                        <Text>Workspace</Text>
-                        <Text>Surveys</Text>
-                    </Breadcrumbs>
+                    {/* <Breadcrumbs>
+                        <Anchor
+                            // component={()=><Link to="/">Survey</Link>}
+
+                        >
+                            
+                        </Anchor>
+
+                    </Breadcrumbs> */}
                     <Title order={1}>Surveys</Title>
                 </Stack>
                 <Stack gap={"md"}>
-                    <Button>
-                        New Survey
-                    </Button>
+                    <Link to={"/survey/create"}>
+                        <Button>
+                            New Survey
+                        </Button>
+                    </Link>
                 </Stack>
             </Flex>
             <SimpleGrid cols={5} spacing={"md"}>
-                <StatCard title={"Active Surveys"} value={"12"} subTitle={{value:"+2 this week", type:"increase"}}/>
-                <StatCard title={"Responses"} value={"18204"} subTitle={{value:"+11%", type:"increase"}}/>
-                <StatCard title={"Avg Completion"} value={"71%"} subTitle={{value:"-3 pts", type:"decrease"}}/>
-                <StatCard title={"Median Time"} value={"4m 12s"} subTitle={null}/>
-                <StatCard title={"Drafts"} value={"9"} subTitle={null}/>
+                <StatCard title={"Active Surveys"} value={"12"} subTitle={{ value: "+2 this week", type: "increase" }} />
+                <StatCard title={"Responses"} value={"18204"} subTitle={{ value: "+11%", type: "increase" }} />
+                <StatCard title={"Avg Completion"} value={"71%"} subTitle={{ value: "-3 pts", type: "decrease" }} />
+                <StatCard title={"Median Time"} value={"4m 12s"} subTitle={null} />
+                <StatCard title={"Drafts"} value={"9"} subTitle={null} />
             </SimpleGrid>
-            <Table stickyHeader={true}>
-                <Table.Thead>
-                    <Table.Th>
-                        Survey
-                    </Table.Th>
-                    <Table.Th>
-                        Status
-                    </Table.Th>
-                    <Table.Th>
-                        Questions
-                    </Table.Th>
-                    <Table.Th>
-                        Responses
-                    </Table.Th>
-                    <Table.Th>
-                        Closes
-                    </Table.Th>
-                    <Table.Th>
-                        Owner
-                    </Table.Th>
-                    <Table.Th>
-                        Last edited
-                    </Table.Th>
-                </Table.Thead>
-                <Table.Tbody>
-                    {
-                        surveys.map(s=><TableRow {...s}/>)
-                    }
-                </Table.Tbody>
-            </Table>
+            <Card shadow="lg" p="xs" radius="md" withBorder >
+                <Table striped highlightOnHover stickyHeader={true}>
+                    <Table.Thead>
+                        <Table.Tr>
+                            <Table.Th>
+                                Survey
+                            </Table.Th>
+                            <Table.Th>
+                                Status
+                            </Table.Th>
+                            <Table.Th>
+                                Questions
+                            </Table.Th>
+                            <Table.Th>
+                                Responses
+                            </Table.Th>
+                            <Table.Th>
+                                Closes
+                            </Table.Th>
+                            <Table.Th>
+                                Owner
+                            </Table.Th>
+                            <Table.Th>
+                                Last edited
+                            </Table.Th>
+                        </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                        {
+                            isLoading &&
+                            <Table.Tr>
+                                <Table.Td colSpan={7} rowSpan={10}>
+                                    <Center>
+                                        <Loader size={30} />
+                                    </Center>
+                                </Table.Td>
+                            </Table.Tr>
+                        }
+                        {
+                            surveys.length === 0 && <Table.Tr>
+                                <Table.Td colSpan={7} rowSpan={10}>
+                                    <Center>
+                                        <EmptyState
+                                            icon={<MagnifyingGlassIcon />}
+                                            title="No results found"
+                                            description="We couldn't find anything matching your search. Try adjusting your filters or searching with different keywords to see more results."
+                                        />
+                                    </Center>
+                                </Table.Td>
+                            </Table.Tr>
+                        }
+                        {
+                            surveys.map(s => <TableRow key={s.surveyName} {...s} />)
+                        }
+                    </Table.Tbody>
+                </Table>
+            </Card>
+
         </Stack>
     </Container>
 }
@@ -96,15 +136,15 @@ function TableRow({
     closes,
     owner,
     lastEdited
-                  }:{
+}: {
     surveyName: string,
     status: string,
     questions: number,
-    responses:number,
+    responses: number,
     closes: Date,
     owner: string,
     lastEdited: Date
-}){
+}) {
     return <Table.Tr>
         <Table.Td>
             {surveyName}
@@ -132,16 +172,16 @@ function TableRow({
 
 
 function StatCard({
-                      title, value, subTitle
-                  }: {
+    title, value, subTitle
+}: {
     title: string,
     value: string,
     subTitle: {
         value: string,
         type: "increase" | "decrease"
     } | null
-}){
-    return  <Paper withBorder px={20} pt={15} pb={10}>
+}) {
+    return <Paper withBorder px={20} pt={15} pb={10}>
         <Stack gap={"sm"}>
             <Text size={"sm"} c={"gray"} tt={"uppercase"} fw={700}>
                 {title}
@@ -150,7 +190,8 @@ function StatCard({
                 <Text size={"xl"} lh={1} fw={700}>{value}</Text>
                 {
                     subTitle &&
-                    <Text size={"sm"} lh={1} c={subTitle.type == "increase" ? "green" : "red"} fw={600}>{subTitle.value}</Text>
+                    <Text size={"sm"} lh={1} c={subTitle.type == "increase" ? "green" : "red"}
+                        fw={600}>{subTitle.value}</Text>
                 }
             </Group>
         </Stack>

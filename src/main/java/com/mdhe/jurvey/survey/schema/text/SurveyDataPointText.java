@@ -12,7 +12,8 @@ import lombok.NoArgsConstructor;
 public class SurveyDataPointText extends SurveyDataPoint
 {
     public SurveyDataPointText(String label, SurveySchema survey){
-        super(label, survey,SurveyDataPointType.TEXTBOX);
+        super(label, survey);
+        survey.getDataPointList().add(this);
     }
 
 }

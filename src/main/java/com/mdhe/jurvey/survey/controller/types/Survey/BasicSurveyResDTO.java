@@ -1,13 +1,16 @@
 package com.mdhe.jurvey.survey.controller.types.Survey;
 
-import com.mdhe.jurvey.survey.schema.SurveySchema;
 
+import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
+import lombok.experimental.SuperBuilder;
+
+@SuperBuilder
 public class BasicSurveyResDTO {
+    @NotNull
     public String id;
+    @NotNull
     public String name;
-
-    public BasicSurveyResDTO(SurveySchema survey){
-        this.id = survey.getId();
-        this.name = survey.getName();
-    }
+    @NotNull
+    public long questionCount;
 }

@@ -2,6 +2,7 @@ package com.mdhe.jurvey.survey.controller;
 
 import com.mdhe.jurvey.survey.controller.types.AddTextDataPointRequest;
 import com.mdhe.jurvey.survey.controller.types.CreateSurveyRequest;
+import com.mdhe.jurvey.survey.controller.types.Datapoint.DatapointDTO;
 import com.mdhe.jurvey.survey.controller.types.Survey.BasicSurveyResDTO;
 import com.mdhe.jurvey.survey.controller.types.Survey.DetailedSurveyResDTO;
 import com.mdhe.jurvey.survey.schema.SurveySchema;
@@ -25,23 +26,19 @@ public class SurveyController {
         this.surveyService = surveyService;
     }
 
-    @GetMapping("/")
+    @GetMapping("")
     public List<BasicSurveyResDTO> getAllSurvey(){
-        return surveyService.getAllSurvey().stream().map(BasicSurveyResDTO::new).toList();
+        return surveyService.getAllSurvey();
     }
 
     @GetMapping("/{id}")
     public DetailedSurveyResDTO getSurvey(@PathVariable String id){
-        return new DetailedSurveyResDTO(surveyService.getSurvey(id));
+        return surveyService.getSurvey(id);
     }
 
     @PostMapping("/")
     public BasicSurveyResDTO createSurvey(@RequestBody CreateSurveyRequest req){
-        return new BasicSurveyResDTO(surveyService.createSurvey(req.name));
+        return surveyService.createSurvey(req.name,req.title,req.description);
     }
 
-    @PostMapping("/datapoint/text")
-    public BasicSurveyResDTO addTextDatapoint(@RequestBody AddTextDataPointRequest req){
-        return new BasicSurveyResDTO(surveyService.createSurveyDataPointText(req.surveyId,req.label));
-    }
 }

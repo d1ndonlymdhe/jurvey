@@ -1,60 +1,73 @@
 package com.mdhe.jurvey.survey.service;
 
+import com.mdhe.jurvey.survey.controller.types.Datapoint.DatapointDTO;
+import com.mdhe.jurvey.survey.controller.types.Datapoint.DatapointMapper;
+import com.mdhe.jurvey.survey.controller.types.Survey.BasicSurveyResDTO;
+import com.mdhe.jurvey.survey.controller.types.Survey.DetailedSurveyResDTO;
 import com.mdhe.jurvey.survey.repository.SurveyDataPointRepository;
 import com.mdhe.jurvey.survey.repository.SurveyRepository;
+import com.mdhe.jurvey.survey.repository.types.NumQuestionView;
+import com.mdhe.jurvey.survey.schema.SurveyDataPoint;
 import com.mdhe.jurvey.survey.schema.SurveySchema;
 import com.mdhe.jurvey.survey.schema.select.SurveyDataPointSelect;
 import com.mdhe.jurvey.survey.schema.text.SurveyDataPointText;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Service
+@AllArgsConstructor
 public class SurveyService {
 
     private final SurveyRepository surveyRepository;
     private final SurveyDataPointRepository surveyDataPointRepository;
 
-    @Autowired
-    public SurveyService(SurveyRepository surveyRepository, SurveyDataPointRepository surveyDataPointRepository) {
-        this.surveyRepository = surveyRepository;
-        this.surveyDataPointRepository = surveyDataPointRepository;
-    }
-
-    public SurveySchema createSurvey(String name) {
+    public BasicSurveyResDTO createSurvey(String name, String title, String description) {
         var existing = this.surveyRepository.findFirstByName(name);
-        if(existing.isPresent()){
+        if (existing.isPresent()) {
             throw new RuntimeException("Survey already exists");
         }
-        return surveyRepository.save(new SurveySchema(name));
+        var newSurvey = surveyRepository.save(new SurveySchema(name, title, description));
+        return toBasicSurveyDTO(newSurvey, Map.of(newSurvey.getId(), 0L));
     }
 
-    public SurveySchema createSurveyDataPointText(String surveyId, String label) {
-        var surveyRef = surveyRepository.getReferenceById(surveyId);
-        var dataPoint = new SurveyDataPointText(label,surveyRef);
-        surveyRef.addDataPoint(dataPoint);
-        return surveyRepository.save(surveyRef);
+    public List<BasicSurveyResDTO> getAllSurvey() {
+        var allSurvey = surveyRepository.findAll();
+        var surveyIds = allSurvey.stream().map(SurveySchema::getId).toList();
+        var surveyIdToCountMap = surveyDataPointRepository.countBySurveyIds(surveyIds).stream().collect(Collectors.toMap(NumQuestionView::getSurveyId, NumQuestionView::getNumQuestions));
+        return allSurvey.stream().map(survey -> toBasicSurveyDTO(survey, surveyIdToCountMap)).toList();
     }
 
-    public SurveySchema createSurveyDataPointSelect(String surveyId, String label, List<String> allowedValues) {
-        var surveyRef = surveyRepository.getReferenceById(surveyId);
-        var dataPoint = new SurveyDataPointSelect(label, surveyRef, allowedValues);
-        surveyRef.addDataPoint(dataPoint);
-        return surveyRepository.save(surveyRef);
+    public DetailedSurveyResDTO getSurvey(String id) {
+        return toDetailedSurveyDTO(getSurveyById(id));
     }
 
-    public List<SurveySchema> getAllSurvey() {
-        return surveyRepository.findAll();
+    protected SurveySchema getSurveyById(String surveyId) {
+        return surveyRepository.findById(surveyId).orElseThrow(() -> new RuntimeException("Survey Not Found"));
     }
 
-    public SurveySchema getSurvey(String id){
-        var surveySchema = surveyRepository.findById(id);
-        if (surveySchema.isEmpty()){
-            throw new RuntimeException("Survey not found");
-        }
-        return surveySchema.get();
+    protected BasicSurveyResDTO toBasicSurveyDTO(SurveySchema survey, Map<String, Long> counts) {
+        return BasicSurveyResDTO.builder().id(survey.getId()).name(survey.getName()).questionCount(counts.getOrDefault(survey.getId(), 0L)).build();
+    }
+
+    protected DetailedSurveyResDTO toDetailedSurveyDTO(SurveySchema schema) {
+        var dataPointDtoList = schema
+                .getDataPointList()
+                .stream()
+                .map(SurveyDataPointService::toDataPointDTO)
+                .toList();
+        return DetailedSurveyResDTO.builder()
+                .id(schema.getId())
+                .name(schema.getName())
+                .questionCount(schema.getDataPointList().size())
+                .dataPoints(dataPointDtoList)
+                .build();
     }
 
 }

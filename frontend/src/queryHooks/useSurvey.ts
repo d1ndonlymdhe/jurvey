@@ -1,41 +1,40 @@
-import {Survey} from "../routes/api/Survey.ts";
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {AddTextDataPointRequest, CreateSurveyRequest} from "../routes/api/data-contracts.ts";
-
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AddTextDataPointRequest, CreateSurveyRequest } from "../api/data-contracts.ts";
+import { Survey } from "../api/Survey.ts"
 
 const surveyApi = new Survey({
-    baseURL:"http://localhost:8000"
+    baseURL: "http://localhost:8080"
 });
 
-export function useSurveys(){
+export function useSurveys() {
     return useQuery({
-        queryKey:["surveys"],
-        queryFn: async ()=>{
+        queryKey: ["surveys"],
+        queryFn: async () => {
             const r = await surveyApi.getAllSurvey();
-            return r.data;
+            return r;
         }
     })
 }
 
-export function  useSurvey(id:string){
+export function useSurvey(id: string) {
     return useQuery({
-        queryKey: ["survey",id],
+        queryKey: ["survey", id],
         queryFn: async () => {
             const r = await surveyApi.getSurvey(id);
-            return r.data;
+            return r;
         }
     })
 }
 
-export function useAddDataPoint(surveyId: string){
+export function useAddDataPoint(surveyId: string) {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: async (data:Omit<AddTextDataPointRequest,"surveyId">)=> {
+        mutationFn: async (data: Omit<AddTextDataPointRequest, "surveyId">) => {
             const r = await surveyApi.addTextDatapoint({
                 ...data,
                 surveyId: surveyId
             });
-            return r.data;
+            return r;
         },
         onSettled: async () => {
             await qc.invalidateQueries({
@@ -46,11 +45,11 @@ export function useAddDataPoint(surveyId: string){
     })
 }
 
-export function useCreateSurvey(){
+export function useCreateSurvey() {
     return useMutation({
-        mutationFn: async (data:CreateSurveyRequest)=>{
+        mutationFn: async (data: CreateSurveyRequest) => {
             const r = await surveyApi.createSurvey(data);
-            return r.data;
+            return r;
         },
     })
 }
