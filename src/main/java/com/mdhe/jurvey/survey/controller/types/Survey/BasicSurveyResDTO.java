@@ -13,4 +13,8 @@ public class BasicSurveyResDTO {
     public String name;
     @NotNull
     public long questionCount;
+    @NotNull
+    public String title;
+    @NotNull
+    public String description;
 }

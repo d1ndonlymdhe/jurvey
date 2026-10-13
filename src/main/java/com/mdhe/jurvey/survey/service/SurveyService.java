@@ -53,7 +53,14 @@ public class SurveyService {
     }
 
     protected BasicSurveyResDTO toBasicSurveyDTO(SurveySchema survey, Map<String, Long> counts) {
-        return BasicSurveyResDTO.builder().id(survey.getId()).name(survey.getName()).questionCount(counts.getOrDefault(survey.getId(), 0L)).build();
+        return BasicSurveyResDTO
+                .builder()
+                .id(survey.getId())
+                .name(survey.getName())
+                .questionCount(counts.getOrDefault(survey.getId(), 0L))
+                .title(survey.getTitle()).
+                description(survey.getDescription())
+                .build();
     }
 
     protected DetailedSurveyResDTO toDetailedSurveyDTO(SurveySchema schema) {
@@ -67,6 +74,8 @@ public class SurveyService {
                 .name(schema.getName())
                 .questionCount(schema.getDataPointList().size())
                 .dataPoints(dataPointDtoList)
+                .title(schema.getTitle())
+                .description(schema.getDescription())
                 .build();
     }
 

@@ -30,10 +30,10 @@ export function useAddDataPoint(surveyId: string) {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: async (data: Omit<AddTextDataPointRequest, "surveyId">) => {
-            const r = await surveyApi.addTextDatapoint({
+            const r = await surveyApi.createTextDataPoint({
                 ...data,
-                surveyId: surveyId
-            });
+                surveyId
+            })
             return r;
         },
         onSettled: async () => {

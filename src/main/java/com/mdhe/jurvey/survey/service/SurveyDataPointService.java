@@ -9,12 +9,14 @@ import com.mdhe.jurvey.survey.schema.select.SurveyDataPointSelect;
 import com.mdhe.jurvey.survey.schema.text.SurveyDataPointText;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class SurveyDataPointService {
     private final SurveyDataPointRepository surveyDataPointRepository;
     private final SurveyRepository surveyRepository;
@@ -38,7 +40,9 @@ public class SurveyDataPointService {
         checkDataPointExists(surveyId,label);
         var survey = surveyService.getSurveyById(surveyId);
         var textSurveyDataPoint = new SurveyDataPointText(label,survey);
+        log.debug("Save text datapoint");
         surveyDataPointRepository.save(textSurveyDataPoint);
+        log.debug("Complete save text datapoint");
         return toDataPointDTO(textSurveyDataPoint);
     }
 

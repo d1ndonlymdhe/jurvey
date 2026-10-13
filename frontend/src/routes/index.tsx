@@ -1,8 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-    Anchor,
-    Box,
-    Breadcrumbs,
     Button,
     Card,
     Center,
@@ -15,7 +12,7 @@ import {
     Text,
     Title
 } from "@mantine/core";
-import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import {MagnifyingGlassIcon, PencilLineIcon} from "@phosphor-icons/react";
 import { useSurveys } from "../queryHooks/useSurvey";
 
 export const Route = createFileRoute("/")({ component: Index })
@@ -26,6 +23,7 @@ function Index() {
         data ?
             data.map(d => {
                 return {
+                    surveyId: d.id,
                     surveyName: d.name,
                     status: 'Active',
                     questions: d.questionCount,
@@ -40,15 +38,6 @@ function Index() {
         <Stack gap={"md"}>
             <Flex direction={"row"} justify={"space-between"} align={"end"}>
                 <Stack gap={"xs"}>
-                    {/* <Breadcrumbs>
-                        <Anchor
-                            // component={()=><Link to="/">Survey</Link>}
-
-                        >
-                            
-                        </Anchor>
-
-                    </Breadcrumbs> */}
                     <Title order={1}>Surveys</Title>
                 </Stack>
                 <Stack gap={"md"}>
@@ -91,6 +80,9 @@ function Index() {
                             <Table.Th>
                                 Last edited
                             </Table.Th>
+                            <Table.Th>
+
+                            </Table.Th>
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
@@ -129,6 +121,7 @@ function Index() {
 }
 
 function TableRow({
+    surveyId,
     surveyName,
     status,
     questions,
@@ -137,6 +130,7 @@ function TableRow({
     owner,
     lastEdited
 }: {
+    surveyId: string,
     surveyName: string,
     status: string,
     questions: number,
@@ -166,6 +160,15 @@ function TableRow({
         </Table.Td>
         <Table.Td>
             {lastEdited.toLocaleDateString()}
+        </Table.Td>
+        <Table.Td>
+            <Link to={"/survey/edit/$surveyId"} params={{
+                surveyId
+            }}>
+                <Button>
+                    <PencilLineIcon size={20}/>
+                </Button>
+            </Link>
         </Table.Td>
     </Table.Tr>
 }
