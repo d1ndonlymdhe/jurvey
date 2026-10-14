@@ -13,12 +13,22 @@ import {
     Title
 } from "@mantine/core";
 import {MagnifyingGlassIcon, PencilLineIcon} from "@phosphor-icons/react";
-import { useSurveys } from "../queryHooks/useSurvey";
+import {useAppDispatch, useAppSelector} from "../hooks.ts";
+import {fetchSurveys, LoadingState} from "../slices/surveysSlice.ts";
+import {useEffect} from "react";
 
 export const Route = createFileRoute("/")({ component: Index })
 
 function Index() {
-    const { data, isLoading } = useSurveys();
+    const dispatch = useAppDispatch();
+    const {status,data} = useAppSelector((state)=>state.surveys)
+    const isLoading = status == LoadingState.IDLE || status == LoadingState.LOADING;
+
+    useEffect(()=>{
+        if(status != LoadingState.IDLE) return;
+        dispatch(fetchSurveys())
+    },[dispatch,status])
+
     const surveys =
         data ?
             data.map(d => {
@@ -97,7 +107,7 @@ function Index() {
                             </Table.Tr>
                         }
                         {
-                            surveys.length === 0 && <Table.Tr>
+                            !isLoading && surveys.length === 0 && <Table.Tr>
                                 <Table.Td colSpan={7} rowSpan={10}>
                                     <Center>
                                         <EmptyState
