@@ -15,7 +15,7 @@ type DraftType<T> = DistributiveOmit<T, "id"> & {
 }
 
 
-type DraftDataPoint = DraftType<DatapointDTO>
+export type DraftDataPoint = DraftType<DatapointDTO>
 export type DraftSurvey = DraftType<Omit<DetailedSurveyResDTO, "dataPoints">> & {
     dataPoints: DraftDataPoint[]
 }
@@ -39,6 +39,20 @@ export function NewDraftTextDataPoint(label: string, draftSurveyId: string): Dra
         id: null,
         draftId: crypto.randomUUID(),
         type: "text",
+        surveyId: draftSurveyId,
+        label: label,
+        syncStatus: "IDLE",
+        syncErrorMsg: null
+    }
+}
+
+
+export function NewDraftSelectDatapoint(label: string, allowedValues:string[], draftSurveyId: string): DraftDataPoint {
+    return {
+        id: null,
+        draftId: crypto.randomUUID(),
+        type: "select",
+        allowedValues: allowedValues,
         surveyId: draftSurveyId,
         label: label,
         syncStatus: "IDLE",
@@ -90,7 +104,7 @@ export const draftSurveySlice = createSlice({
                 state.data[draftId] = action.payload
             }
         },
-        addTextDataPoint(state, action: PayloadAction<DraftDataPoint>) {
+        addDatapoint(state, action: PayloadAction<DraftDataPoint>) {
             const {surveyId, draftId} = action.payload;
             const existing = state.data[surveyId];
             if (existing) {
@@ -99,7 +113,7 @@ export const draftSurveySlice = createSlice({
                     existing.dataPoints.push(action.payload)
                 }
             }
-        }
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -139,4 +153,4 @@ export const draftSurveySlice = createSlice({
 })
 
 export default draftSurveySlice.reducer;
-export const {addTextDataPoint, createDraftSurvey} = draftSurveySlice.actions;
+export const {addDatapoint, createDraftSurvey} = draftSurveySlice.actions;

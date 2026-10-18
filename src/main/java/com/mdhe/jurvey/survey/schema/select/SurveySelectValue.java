@@ -47,5 +47,6 @@ public class SurveySelectValue {
     public SurveySelectValue(String value, SurveyDataPointSelect select) {
         this.value = value;
         this.selectDataPoint = select;
+        select.getAllowedValues().add(this);
     }
 }

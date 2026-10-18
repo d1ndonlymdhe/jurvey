@@ -23,7 +23,7 @@ public class SurveyDataPointSelect extends SurveyDataPoint {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<SurveySelectValue> allowedValues;
+    private List<SurveySelectValue> allowedValues = new ArrayList<>();
 
     public SurveyDataPointSelect(String label, SurveySchema survey){
         super(label, survey);

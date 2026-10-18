@@ -1,16 +1,16 @@
 import {createFileRoute, useNavigate} from '@tanstack/react-router'
 import {useCallback, useState} from "react";
-import {Container, Flex, Stack, Title, Card, TextInput, Textarea, Button, Group, Modal} from '@mantine/core';
+import {Container, Flex, Stack, Title, Card, TextInput, Textarea, Button, Group, Modal, Select} from '@mantine/core';
 import {useDisclosure} from '@mantine/hooks';
 import {useAppDispatch, useAppSelector} from "../../hooks.ts";
 import {LoadingState} from "../../slices/surveysSlice.ts";
 import {
-
-    createDraftSurvey, createFromDraft,
-    DraftSurvey,
+    createDraftSurvey, createFromDraft, DraftDataPoint,
+    DraftSurvey, NewDraftSelectDatapoint,
     NewDraftSurvey,
     NewDraftTextDataPoint, selectDraftSurveyWithId
 } from "../../slices/draftSurveySlice.ts";
+
 
 
 export const Route = createFileRoute('/survey/create/{-$draftId}')({
@@ -21,7 +21,14 @@ function RouteComponent() {
     const {draftId} = Route.useParams();
     const navigate = useNavigate();
 
-    const [isAddQuestionModalOpen, {open: openAddQuestionModal, close: closeAddQuestionModal}] = useDisclosure(false)
+    const [isAddTextQuestionModalOpen, {
+        open: openAddTextQuestionModal,
+        close: closeAddTextQuestionModal
+    }] = useDisclosure(false)
+    const [isAddSelectQuestionModalOpen, {
+        open: openAddSelectQuestionModal,
+        close: closeAddSelectQuestionModal
+    }] = useDisclosure(false);
     const dispatch = useAppDispatch()
     const selectedDraft = useAppSelector(state => selectDraftSurveyWithId(state, draftId || null))
     const [draftSurvey, setDraftSurvey] = useState<DraftSurvey>(selectedDraft ? selectedDraft : NewDraftSurvey())
@@ -71,13 +78,19 @@ function RouteComponent() {
                                       })}/>
                             {
                                 draftSurvey.dataPoints.map((dp) => {
-                                    return <TextInput label={dp.label}/>
+                                    return <RenderDraftDatapoint datapoint={dp} key={dp.draftId}/>
                                 })
                             }
-                            <Button onClick={openAddQuestionModal} type={"button"}>
-                                Add Datapoint
-                            </Button>
-                            <Modal opened={isAddQuestionModalOpen} onClose={closeAddQuestionModal}>
+                            <Group>
+                                <Button onClick={openAddTextQuestionModal} type={"button"}>
+                                    Add Text Question
+                                </Button>
+                                <Button onClick={openAddSelectQuestionModal} type={"button"}>
+                                    Add Select Question
+                                </Button>
+                            </Group>
+
+                            <Modal opened={isAddTextQuestionModalOpen} onClose={closeAddTextQuestionModal}>
                                 <AddTextDataPoint saveFn={(label) => {
                                     setDraftSurvey((currentDraftSurvey) => {
                                         currentDraftSurvey = currentDraftSurvey!;
@@ -87,7 +100,19 @@ function RouteComponent() {
                                             questionCount: currentDraftSurvey.questionCount + 1
                                         }
                                     })
-                                }} closeFn={closeAddQuestionModal}/>
+                                }} closeFn={closeAddTextQuestionModal}/>
+                            </Modal>
+                            <Modal opened={isAddSelectQuestionModalOpen} onClose={closeAddSelectQuestionModal}>
+                                <AddSelectDataPoint saveFn={(label, allowedValues) => {
+                                    setDraftSurvey((currentDraftSurvey) => {
+                                        currentDraftSurvey = currentDraftSurvey!;
+                                        return {
+                                            ...currentDraftSurvey,
+                                            dataPoints: [...currentDraftSurvey?.dataPoints, NewDraftSelectDatapoint(label, allowedValues, currentDraftSurvey.draftId)],
+                                            questionCount: currentDraftSurvey.questionCount + 1
+                                        }
+                                    })
+                                }} closeFn={closeAddSelectQuestionModal}/>
                             </Modal>
                             <Group justify={"start"}>
                                 <Button size="lg" type="button" loading={submitLoading} onClick={submitDraft}
@@ -101,6 +126,39 @@ function RouteComponent() {
             </Card>
         </Stack>
     </Container>
+}
+
+function RenderTextDatapoint({datapoint}: {
+    datapoint: {
+        label: string
+    }
+}){
+    return <TextInput label={datapoint.label}>
+    </TextInput>
+}
+
+function RenderSelectDatapoint({datapoint}: {
+    datapoint: {
+        label: string,
+        allowedValues: string[]
+    }
+}){
+    return <Select
+        label={datapoint.label}
+        data={datapoint.allowedValues}
+    ></Select>
+}
+
+
+function RenderDraftDatapoint({datapoint}: {
+    datapoint: DraftDataPoint
+}){
+    if (datapoint.type == "text"){
+        return <RenderTextDatapoint datapoint={datapoint}/>
+    }
+    if (datapoint.type == "select"){
+        return <RenderSelectDatapoint datapoint={datapoint}/>
+    }
 }
 
 function AddTextDataPoint({saveFn, closeFn}: {
@@ -120,6 +178,54 @@ function AddTextDataPoint({saveFn, closeFn}: {
                 <TextInput label={"Enter question"} value={label} onChange={(e) => {
                     setLabel(e.target.value)
                 }}/>
+                <Button type={"submit"}>
+                    Submit
+                </Button>
+            </Stack>
+        </form>
+    </Container>
+}
+
+function AddSelectDataPoint({saveFn, closeFn}: {
+    saveFn: (label: string, allowedValues: string[]) => void,
+    closeFn?: () => void
+}) {
+    const [label, setLabel] = useState("");
+    const [allowedValues, setAllowedValues] = useState([] as string[]);
+
+    return <Container fluid px={"lg"} py={"md"}>
+        <form onSubmit={(e) => {
+            e.preventDefault();
+            saveFn(label, allowedValues)
+            closeFn && closeFn()
+        }}>
+            <Stack gap={"md"}>
+                <TextInput label={"Enter question"} value={label} onChange={(e) => {
+                    setLabel(e.target.value)
+                }}/>
+                {
+                    allowedValues.map((allowedValue, idx) => {
+                        return <Group key={idx}>
+                            <TextInput label={"Allowed value for select"} value={allowedValue} onChange={(e) => {
+                                const copy = [...allowedValues];
+                                copy[idx] = e.target.value;
+                                setAllowedValues(copy)
+                            }}></TextInput>
+                            <Button type={"button"} onClick={() => {
+                                setAllowedValues(allowedValues.filter((_, i) =>
+                                    i != idx
+                                ))
+                            }}>
+                                Remove value
+                            </Button>
+                        </Group>
+                    })
+                }
+                <Button type={"button"} onClick={() => {
+                    setAllowedValues([...allowedValues, "Select Value"])
+                }}>
+                    Add Value
+                </Button>
                 <Button type={"submit"}>
                     Submit
                 </Button>
