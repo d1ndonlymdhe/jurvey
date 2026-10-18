@@ -6,4 +6,7 @@ public class TextDataPointDTO extends DatapointDTO {
     public TextDataPointDTO(SurveyDataPointText textDatapoint) {
         super(textDatapoint);
     }
+    protected TextDataPointDTO(){
+        super();
+    }
 }

@@ -31,14 +31,25 @@ public class SurveyController {
         return surveyService.getAllSurvey();
     }
 
-    @GetMapping("/{id}")
-    public DetailedSurveyResDTO getSurvey(@PathVariable String id){
-        return surveyService.getSurvey(id);
-    }
-
-    @PostMapping("/")
+    @PostMapping("")
     public BasicSurveyResDTO createSurvey(@RequestBody CreateSurveyRequest req){
         return surveyService.createSurvey(req.name,req.title,req.description);
+    }
+
+    @GetMapping("/{surveyId}")
+    public DetailedSurveyResDTO getSurvey(@PathVariable String surveyId){
+        return surveyService.getSurvey(surveyId);
+    }
+
+    @PostMapping("/{$surveyId}")
+    public DetailedSurveyResDTO editSurvey(@PathVariable String surveyId, @RequestBody DetailedSurveyResDTO req){
+        req.id = surveyId;
+        return surveyService.updateSurveyFromDraft(req);
+    }
+
+    @PostMapping("/draft")
+    public DetailedSurveyResDTO createFromDraft(@RequestBody DetailedSurveyResDTO req){
+        return surveyService.createSurveyFromDraft(req);
     }
 
 }

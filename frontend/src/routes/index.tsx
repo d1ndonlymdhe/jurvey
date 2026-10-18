@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import {createFileRoute, Link} from "@tanstack/react-router";
 import {
     Button,
     Card,
@@ -15,19 +15,23 @@ import {
 import {MagnifyingGlassIcon, PencilLineIcon} from "@phosphor-icons/react";
 import {useAppDispatch, useAppSelector} from "../hooks.ts";
 import {fetchSurveys, LoadingState} from "../slices/surveysSlice.ts";
+import {DraftSurvey} from "../slices/draftSurveySlice.ts";
 import {useEffect} from "react";
 
-export const Route = createFileRoute("/")({ component: Index })
+export const Route = createFileRoute("/")({component: Index})
 
 function Index() {
     const dispatch = useAppDispatch();
-    const {status,data} = useAppSelector((state)=>state.surveys)
+    const {status, data} = useAppSelector((state) => state.surveys)
+    const draftSurveys = useAppSelector((state) => state.draftSurvey.data)
     const isLoading = status == LoadingState.IDLE || status == LoadingState.LOADING;
 
-    useEffect(()=>{
-        if(status != LoadingState.IDLE) return;
+    const drafts: (DraftSurvey & { index: number })[] = Object.values(draftSurveys).map((d, i) => ({...d, index: i}));
+
+    useEffect(() => {
+        if (status != LoadingState.IDLE) return;
         dispatch(fetchSurveys())
-    },[dispatch,status])
+    }, [dispatch, status])
 
     const surveys =
         data ?
@@ -51,7 +55,12 @@ function Index() {
                     <Title order={1}>Surveys</Title>
                 </Stack>
                 <Stack gap={"md"}>
-                    <Link to={"/survey/create"}>
+                    <Link to={"/survey/create/{-$draftId}"}
+                          params={
+                              {
+                                  draftId: undefined
+                              }
+                          }>
                         <Button>
                             New Survey
                         </Button>
@@ -59,13 +68,13 @@ function Index() {
                 </Stack>
             </Flex>
             <SimpleGrid cols={5} spacing={"md"}>
-                <StatCard title={"Active Surveys"} value={"12"} subTitle={{ value: "+2 this week", type: "increase" }} />
-                <StatCard title={"Responses"} value={"18204"} subTitle={{ value: "+11%", type: "increase" }} />
-                <StatCard title={"Avg Completion"} value={"71%"} subTitle={{ value: "-3 pts", type: "decrease" }} />
-                <StatCard title={"Median Time"} value={"4m 12s"} subTitle={null} />
-                <StatCard title={"Drafts"} value={"9"} subTitle={null} />
+                <StatCard title={"Active Surveys"} value={"12"} subTitle={{value: "+2 this week", type: "increase"}}/>
+                <StatCard title={"Responses"} value={"18204"} subTitle={{value: "+11%", type: "increase"}}/>
+                <StatCard title={"Avg Completion"} value={"71%"} subTitle={{value: "-3 pts", type: "decrease"}}/>
+                <StatCard title={"Median Time"} value={"4m 12s"} subTitle={null}/>
+                <StatCard title={"Drafts"} value={"9"} subTitle={null}/>
             </SimpleGrid>
-            <Card shadow="lg" p="xs" radius="md" withBorder >
+            <Card shadow="lg" p="xs" radius="md" withBorder>
                 <Table striped highlightOnHover stickyHeader={true}>
                     <Table.Thead>
                         <Table.Tr>
@@ -101,7 +110,7 @@ function Index() {
                             <Table.Tr>
                                 <Table.Td colSpan={7} rowSpan={10}>
                                     <Center>
-                                        <Loader size={30} />
+                                        <Loader size={30}/>
                                     </Center>
                                 </Table.Td>
                             </Table.Tr>
@@ -111,7 +120,7 @@ function Index() {
                                 <Table.Td colSpan={7} rowSpan={10}>
                                     <Center>
                                         <EmptyState
-                                            icon={<MagnifyingGlassIcon />}
+                                            icon={<MagnifyingGlassIcon/>}
                                             title="No results found"
                                             description="We couldn't find anything matching your search. Try adjusting your filters or searching with different keywords to see more results."
                                         />
@@ -126,20 +135,55 @@ function Index() {
                 </Table>
             </Card>
 
+            <Card shadow="lg" p="xs" radius="md" withBorder>
+                <Stack gap={"sm"}>
+                    <Title order={3}>Draft Surveys</Title>
+                    <Table striped highlightOnHover>
+                        <Table.Thead>
+                            <Table.Tr>
+                                <Table.Th>Name</Table.Th>
+                                <Table.Th>Title</Table.Th>
+                                <Table.Th>Questions</Table.Th>
+                                <Table.Th>Status</Table.Th>
+                                <Table.Th></Table.Th>
+                            </Table.Tr>
+                        </Table.Thead>
+                        <Table.Tbody>
+                            {
+                                drafts.length === 0 && <Table.Tr>
+                                    <Table.Td colSpan={5}>
+                                        <Center>
+                                            <EmptyState
+                                                icon={<PencilLineIcon/>}
+                                                title="No drafts"
+                                                description="You don't have any draft surveys yet. Create a new survey to get started."
+                                            />
+                                        </Center>
+                                    </Table.Td>
+                                </Table.Tr>
+                            }
+                            {
+                                drafts.map(d => <DraftTableRow key={d.draftId} {...d} />)
+                            }
+                        </Table.Tbody>
+                    </Table>
+                </Stack>
+            </Card>
+
         </Stack>
     </Container>
 }
 
 function TableRow({
-    surveyId,
-    surveyName,
-    status,
-    questions,
-    responses,
-    closes,
-    owner,
-    lastEdited
-}: {
+                      surveyId,
+                      surveyName,
+                      status,
+                      questions,
+                      responses,
+                      closes,
+                      owner,
+                      lastEdited
+                  }: {
     surveyId: string,
     surveyName: string,
     status: string,
@@ -184,9 +228,25 @@ function TableRow({
 }
 
 
+function DraftTableRow(draft: DraftSurvey & { index: number }) {
+    return <Table.Tr>
+        <Table.Td>{draft.name || "-"}</Table.Td>
+        <Table.Td>{draft.title || "-"}</Table.Td>
+        <Table.Td>{draft.questionCount}</Table.Td>
+        <Table.Td>{draft.syncStatus}</Table.Td>
+        <Table.Td>
+            <Link to={"/survey/create/{-$draftId}"} params={{draftId: draft.draftId}}>
+                <Button>
+                    <PencilLineIcon size={20}/>
+                </Button>
+            </Link>
+        </Table.Td>
+    </Table.Tr>
+}
+
 function StatCard({
-    title, value, subTitle
-}: {
+                      title, value, subTitle
+                  }: {
     title: string,
     value: string,
     subTitle: {
@@ -204,7 +264,7 @@ function StatCard({
                 {
                     subTitle &&
                     <Text size={"sm"} lh={1} c={subTitle.type == "increase" ? "green" : "red"}
-                        fw={600}>{subTitle.value}</Text>
+                          fw={600}>{subTitle.value}</Text>
                 }
             </Group>
         </Stack>

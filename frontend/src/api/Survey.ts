@@ -26,6 +26,64 @@ export class Survey<
   /**
    * No description
    *
+   * @tags Survey API
+   * @name GetAllSurvey
+   * @request GET:/survey
+   */
+  getAllSurvey = (params: RequestParams = {}) =>
+    this.request<BasicSurveyResDTO[], any>({
+      path: `/survey`,
+      method: "GET",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags Survey API
+   * @name CreateSurvey
+   * @request POST:/survey
+   */
+  createSurvey = (data: CreateSurveyRequest, params: RequestParams = {}) =>
+    this.request<BasicSurveyResDTO, any>({
+      path: `/survey`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags Survey API
+   * @name EditSurvey
+   * @request POST:/survey/{$surveyId}
+   */
+  editSurvey = (data: DetailedSurveyResDTO, params: RequestParams = {}) =>
+    this.request<DetailedSurveyResDTO, any>({
+      path: `/survey/{$surveyId}`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags Survey API
+   * @name CreateFromDraft
+   * @request POST:/survey/draft
+   */
+  createFromDraft = (data: DetailedSurveyResDTO, params: RequestParams = {}) =>
+    this.request<DetailedSurveyResDTO, any>({
+      path: `/survey/draft`,
+      method: "POST",
+      body: data,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * No description
+   *
    * @tags Survey Datapoint API
    * @name CreateTextDataPoint
    * @request POST:/survey/datapoint/text
@@ -45,40 +103,12 @@ export class Survey<
    * No description
    *
    * @tags Survey API
-   * @name CreateSurvey
-   * @request POST:/survey/
-   */
-  createSurvey = (data: CreateSurveyRequest, params: RequestParams = {}) =>
-    this.request<BasicSurveyResDTO, any>({
-      path: `/survey/`,
-      method: "POST",
-      body: data,
-      type: ContentType.Json,
-      ...params,
-    });
-  /**
-   * No description
-   *
-   * @tags Survey API
-   * @name GetAllSurvey
-   * @request GET:/survey
-   */
-  getAllSurvey = (params: RequestParams = {}) =>
-    this.request<BasicSurveyResDTO[], any>({
-      path: `/survey`,
-      method: "GET",
-      ...params,
-    });
-  /**
-   * No description
-   *
-   * @tags Survey API
    * @name GetSurvey
-   * @request GET:/survey/{id}
+   * @request GET:/survey/{surveyId}
    */
-  getSurvey = (id: string, params: RequestParams = {}) =>
+  getSurvey = (surveyId: string, params: RequestParams = {}) =>
     this.request<DetailedSurveyResDTO, any>({
-      path: `/survey/${id}`,
+      path: `/survey/${surveyId}`,
       method: "GET",
       ...params,
     });

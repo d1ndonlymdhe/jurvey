@@ -2,10 +2,12 @@ package com.mdhe.jurvey.survey.controller.types.Survey;
 
 
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @SuperBuilder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BasicSurveyResDTO {
     @NotNull
     public String id;

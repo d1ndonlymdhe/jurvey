@@ -2,10 +2,14 @@ package com.mdhe.jurvey.survey.service;
 
 import com.mdhe.jurvey.survey.controller.types.Datapoint.DatapointDTO;
 import com.mdhe.jurvey.survey.controller.types.Datapoint.DatapointMapper;
+import com.mdhe.jurvey.survey.controller.types.Datapoint.SelectDataPointDTO;
+import com.mdhe.jurvey.survey.controller.types.Datapoint.TextDataPointDTO;
 import com.mdhe.jurvey.survey.repository.SurveyDataPointRepository;
 import com.mdhe.jurvey.survey.repository.SurveyRepository;
 import com.mdhe.jurvey.survey.schema.SurveyDataPoint;
+import com.mdhe.jurvey.survey.schema.SurveySchema;
 import com.mdhe.jurvey.survey.schema.select.SurveyDataPointSelect;
+import com.mdhe.jurvey.survey.schema.select.SurveySelectValue;
 import com.mdhe.jurvey.survey.schema.text.SurveyDataPointText;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -13,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor
@@ -55,6 +60,28 @@ public class SurveyDataPointService {
         var createdAllowedValues = surveySelectValueService.createMultiple(selectSurveyDataPoint.getId(),allowedValues);
         selectSurveyDataPoint.getAllowedValues().addAll(createdAllowedValues);
         return toDataPointDTO(selectSurveyDataPoint);
+    }
+
+    /**
+     * Use this method to get a new SurveyDataPoint object from a DTO
+     * THIS IS USED ONLY TO GET NEW ONES, NOT FETCH FROM DATABASE
+     * @param dto
+     * @param survey The survey entity that this dto is a part of DO NOT PASS INCORRECT SURVEY
+     * @return
+     */
+    public static SurveyDataPoint fromDto(DatapointDTO dto, SurveySchema survey){
+        if(dto instanceof TextDataPointDTO){
+            return new SurveyDataPointText(dto.label,survey);
+        }
+        if(dto instanceof SelectDataPointDTO){
+            SurveyDataPointSelect selectDataPoint = new SurveyDataPointSelect(dto.label,survey);
+            List<String> allowedValues = ((SelectDataPointDTO) dto).allowedValues;
+            allowedValues.forEach(allowedValue->{
+                new SurveySelectValue(allowedValue,selectDataPoint);
+            });
+            return selectDataPoint;
+        }
+        throw new RuntimeException("Unhandled SurveyDTO instance");
     }
 
     protected static DatapointDTO toDataPointDTO(SurveyDataPoint surveyDataPoint) {

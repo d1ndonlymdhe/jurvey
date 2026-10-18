@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
-import { Route as SurveyCreateRouteImport } from './routes/survey/create'
+import { Route as SurveyCreateChar123DraftIdChar125RouteImport } from './routes/survey/create.{-$draftId}'
 import { Route as SurveyEditSurveyIdRouteImport } from './routes/survey/edit.$surveyId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -24,11 +24,12 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SurveyCreateRoute = SurveyCreateRouteImport.update({
-  id: '/survey/create',
-  path: '/survey/create',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const SurveyCreateChar123DraftIdChar125Route =
+  SurveyCreateChar123DraftIdChar125RouteImport.update({
+    id: '/survey/create/{-$draftId}',
+    path: '/survey/create/{-$draftId}',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const SurveyEditSurveyIdRoute = SurveyEditSurveyIdRouteImport.update({
   id: '/survey/edit/$surveyId',
   path: '/survey/edit/$surveyId',
@@ -38,34 +39,40 @@ const SurveyEditSurveyIdRoute = SurveyEditSurveyIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/survey/create': typeof SurveyCreateRoute
+  '/survey/create/{-$draftId}': typeof SurveyCreateChar123DraftIdChar125Route
   '/survey/edit/$surveyId': typeof SurveyEditSurveyIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/survey/create': typeof SurveyCreateRoute
+  '/survey/create/{-$draftId}': typeof SurveyCreateChar123DraftIdChar125Route
   '/survey/edit/$surveyId': typeof SurveyEditSurveyIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/survey/create': typeof SurveyCreateRoute
+  '/survey/create/{-$draftId}': typeof SurveyCreateChar123DraftIdChar125Route
   '/survey/edit/$surveyId': typeof SurveyEditSurveyIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/survey/create' | '/survey/edit/$surveyId'
+  fullPaths:
+    '/' | '/about' | '/survey/create/{-$draftId}' | '/survey/edit/$surveyId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/survey/create' | '/survey/edit/$surveyId'
-  id: '__root__' | '/' | '/about' | '/survey/create' | '/survey/edit/$surveyId'
+  to: '/' | '/about' | '/survey/create/{-$draftId}' | '/survey/edit/$surveyId'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/survey/create/{-$draftId}'
+    | '/survey/edit/$surveyId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  SurveyCreateRoute: typeof SurveyCreateRoute
+  SurveyCreateChar123DraftIdChar125Route: typeof SurveyCreateChar123DraftIdChar125Route
   SurveyEditSurveyIdRoute: typeof SurveyEditSurveyIdRoute
 }
 
@@ -85,11 +92,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/survey/create': {
-      id: '/survey/create'
-      path: '/survey/create'
-      fullPath: '/survey/create'
-      preLoaderRoute: typeof SurveyCreateRouteImport
+    '/survey/create/{-$draftId}': {
+      id: '/survey/create/{-$draftId}'
+      path: '/survey/create/{-$draftId}'
+      fullPath: '/survey/create/{-$draftId}'
+      preLoaderRoute: typeof SurveyCreateChar123DraftIdChar125RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/survey/edit/$surveyId': {
@@ -105,7 +112,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  SurveyCreateRoute: SurveyCreateRoute,
+  SurveyCreateChar123DraftIdChar125Route:
+    SurveyCreateChar123DraftIdChar125Route,
   SurveyEditSurveyIdRoute: SurveyEditSurveyIdRoute,
 }
 export const routeTree = rootRouteImport

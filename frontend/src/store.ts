@@ -1,10 +1,12 @@
 import {configureStore}  from "@reduxjs/toolkit";
 import surveyReducer from "./slices/surveysSlice.ts";
 import detailedSurveyReducer from "./slices/detailedSurveySlice.ts"
+import draftSurveyReducer from "./slices/draftSurveySlice.ts"
 export const store = configureStore({
     reducer:{
         surveys: surveyReducer,
-        detailedSurvey: detailedSurveyReducer
+        detailedSurvey: detailedSurveyReducer,
+        draftSurvey: draftSurveyReducer,
     }
 })
 

@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "generate:api": "swagger-typescript-api generate -p http://localhost:8080/v3/api-docs -o ./src/api --modular --axios --unwrap-response-data --clean-output"
+    "generate:api": "swagger-typescript-api generate -p http://localhost:8080/v3/api-docs -o ./src/api --modular --axios --extract-enums --unwrap-response-data --clean-output"
   },
   "dependencies": {
     "@mantine/core": "^9.6.3",

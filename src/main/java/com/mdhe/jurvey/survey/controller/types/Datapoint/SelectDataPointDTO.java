@@ -13,4 +13,7 @@ public class SelectDataPointDTO extends DatapointDTO{
         super(dataPointSelect);
         this.allowedValues = dataPointSelect.getAllowedValues().stream().map(SurveySelectValue::getValue).toList();
     }
+    protected SelectDataPointDTO(){
+        super();
+    }
 }

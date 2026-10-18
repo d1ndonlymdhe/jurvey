@@ -24,6 +24,5 @@ createRoot(document.getElementById('root')!).render(
               <RouterProvider router={router}></RouterProvider>
           </MantineProvider>
       </Provider>
-    {/*<App />*/}
   </StrictMode>,
 )

@@ -12,29 +12,11 @@
 
 type UtilRequiredKeys<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 
-export interface DatapointDTO {
-  id: string;
-  label: string;
-  surveyId: string;
-  type: string;
-}
-
-export interface AddTextDataPointRequest {
-  surveyId: string;
-  label: string;
-}
-
-export type SelectDataPointDTO = UtilRequiredKeys<
-  DatapointDTO,
-  "id" | "label" | "surveyId"
-> & {
-  allowedValues: string[];
-};
-
-export type TextDataPointDTO = UtilRequiredKeys<
-  DatapointDTO,
-  "id" | "label" | "surveyId"
->;
+export type DatapointDTO = BaseDatapointDto &
+  (
+    | BaseDatapointDtoTypeMapping<"text", TextDataPointDTO>
+    | BaseDatapointDtoTypeMapping<"select", SelectDataPointDTO>
+  );
 
 export interface CreateSurveyRequest {
   name: string;
@@ -60,3 +42,31 @@ export interface DetailedSurveyResDTO {
   description: string;
   dataPoints: (SelectDataPointDTO | TextDataPointDTO)[];
 }
+
+export type SelectDataPointDTO = UtilRequiredKeys<
+  BaseDatapointDto,
+  "id" | "label" | "surveyId"
+> & {
+  allowedValues: string[];
+};
+
+export type TextDataPointDTO = UtilRequiredKeys<
+  BaseDatapointDto,
+  "id" | "label" | "surveyId"
+>;
+
+export interface AddTextDataPointRequest {
+  surveyId: string;
+  label: string;
+}
+
+interface BaseDatapointDto {
+  id: string;
+  label: string;
+  surveyId: string;
+  type: string;
+}
+
+type BaseDatapointDtoTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;

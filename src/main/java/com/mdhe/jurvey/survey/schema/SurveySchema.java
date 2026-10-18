@@ -8,6 +8,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -41,7 +42,7 @@ public class SurveySchema {
             fetch = FetchType.LAZY
     )
     @Getter
-    private List<SurveyDataPoint> dataPointList;
+    private List<SurveyDataPoint> dataPointList = new ArrayList<>();
 
     @CreatedDate
     @Getter

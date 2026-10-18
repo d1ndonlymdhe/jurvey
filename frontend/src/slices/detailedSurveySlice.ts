@@ -1,4 +1,8 @@
-import {AddTextDataPointRequest, DatapointDTO, DetailedSurveyResDTO} from "../api/data-contracts.ts";
+import {
+    AddTextDataPointRequest,
+    DetailedSurveyResDTO,
+    SelectDataPointDTO, TextDataPointDTO
+} from "../api/data-contracts.ts";
 import {LoadingState, LoadingStateType, SurveyAPI} from "./surveysSlice.ts";
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 
@@ -17,7 +21,7 @@ export const fetchDetailedSurvey = createAsyncThunk<DetailedSurveyResDTO, string
     return await SurveyAPI.getSurvey(surveyId);
 })
 
-export const createTextDatapoint = createAsyncThunk<DatapointDTO,AddTextDataPointRequest>("surveys/detailed/datapoint/text/create", async (req)=>{
+export const createTextDatapoint = createAsyncThunk<SelectDataPointDTO | TextDataPointDTO,AddTextDataPointRequest>("surveys/detailed/datapoint/text/create", async (req)=>{
     return await SurveyAPI.createTextDataPoint(req);
 })
 
