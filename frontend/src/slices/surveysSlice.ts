@@ -31,6 +31,8 @@ export const createSurvey = createAsyncThunk<BasicSurveyResDTO, CreateSurveyRequ
     return await SurveyAPI.createSurvey(req);
 })
 
+
+
 export const surveysSlice = createSlice({
     name: 'surveys',
     initialState,

@@ -33,12 +33,14 @@ public abstract class DatapointDTO {
     public String label;
     @NotNull
     public String surveyId;
-
+    @NotNull
+    public Integer position;
 
     public DatapointDTO(SurveyDataPoint dataPoint){
         this.id = dataPoint.getId();
         this.label = dataPoint.getLabel();
         this.surveyId = dataPoint.getSurvey().getId();
+        this.position = dataPoint.getPosition();
     }
 
     protected DatapointDTO(){}

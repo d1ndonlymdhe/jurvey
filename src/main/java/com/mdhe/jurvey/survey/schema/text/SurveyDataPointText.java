@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SurveyDataPointText extends SurveyDataPoint
 {
-    public SurveyDataPointText(String label, SurveySchema survey){
-        super(label, survey);
+    public SurveyDataPointText(String label, SurveySchema survey, Integer position){
+        super(label, survey,position);
         survey.getDataPointList().add(this);
     }
 

@@ -13,12 +13,7 @@ import java.time.LocalDateTime;
 @Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
-@Table(
-        uniqueConstraints = @UniqueConstraint(
-                name = "unique_datapoint_survey_label",
-                columnNames = {"survey_id","label"}
-        )
-)
+@Table(uniqueConstraints = {@UniqueConstraint(name = "unique_datapoint_survey_label", columnNames = {"survey_id", "label"}), @UniqueConstraint(name = "unique_datapoint_survey_position", columnNames = {"survey_id", "position"})})
 public class SurveyDataPoint {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -36,15 +31,22 @@ public class SurveyDataPoint {
     private SurveySchema survey;
 
     @Getter
+    @Setter
+    @NotNull
+    private Integer position;
+
+    @Getter
     @CreatedDate
     private LocalDateTime createdAt;
 
     @Getter
     @LastModifiedDate
     private LocalDateTime updatedAt;
-    public SurveyDataPoint(String label, SurveySchema survey){
+
+    public SurveyDataPoint(String label, SurveySchema survey, Integer position) {
         this.label = label;
         this.survey = survey;
+        this.position = position;
     }
 
 }

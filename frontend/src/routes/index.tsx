@@ -65,8 +65,7 @@ function Index() {
                             New Survey
                         </Button>
                     </Link>
-                </Stack>
-            </Flex>
+                </Stack>            </Flex>
             <SimpleGrid cols={5} spacing={"md"}>
                 <StatCard title={"Active Surveys"} value={"12"} subTitle={{value: "+2 this week", type: "increase"}}/>
                 <StatCard title={"Responses"} value={"18204"} subTitle={{value: "+11%", type: "increase"}}/>
@@ -216,8 +215,8 @@ function TableRow({
             {lastEdited.toLocaleDateString()}
         </Table.Td>
         <Table.Td>
-            <Link to={"/survey/edit/$surveyId"} params={{
-                surveyId
+            <Link to={"/survey/create/{-$draftId}"} params={{
+                draftId:surveyId
             }}>
                 <Button>
                     <PencilLineIcon size={20}/>

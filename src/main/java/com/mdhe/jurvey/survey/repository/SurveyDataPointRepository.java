@@ -24,4 +24,11 @@ public interface SurveyDataPointRepository extends JpaRepository<SurveyDataPoint
     List<SurveyDataPoint> findByLabelIn(Collection<@NotNull String> label);
     List<SurveyDataPoint> findByIdInAndSurveyId(Collection<@NotNull String> id, String SurveyId);
     boolean existsBySurveyIdAndLabel(String surveyId, String label);
+
+    @Query("""
+    select coalesce(max(sdp.position),0)
+    from SurveyDataPoint sdp
+    where sdp.survey.id in :ids
+""")
+    Integer findMaxPositionBySurveyId(@Param("surveyId") String surveyId);
 }

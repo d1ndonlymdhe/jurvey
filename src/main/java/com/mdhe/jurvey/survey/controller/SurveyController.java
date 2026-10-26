@@ -41,7 +41,7 @@ public class SurveyController {
         return surveyService.getSurvey(surveyId);
     }
 
-    @PostMapping("/{$surveyId}")
+    @PostMapping("/{surveyId}")
     public DetailedSurveyResDTO editSurvey(@PathVariable String surveyId, @RequestBody DetailedSurveyResDTO req){
         req.id = surveyId;
         return surveyService.updateSurveyFromDraft(req);

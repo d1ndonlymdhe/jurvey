@@ -55,12 +55,29 @@ export class Survey<
    * No description
    *
    * @tags Survey API
-   * @name EditSurvey
-   * @request POST:/survey/{$surveyId}
+   * @name GetSurvey
+   * @request GET:/survey/{surveyId}
    */
-  editSurvey = (data: DetailedSurveyResDTO, params: RequestParams = {}) =>
+  getSurvey = (surveyId: string, params: RequestParams = {}) =>
     this.request<DetailedSurveyResDTO, any>({
-      path: `/survey/{$surveyId}`,
+      path: `/survey/${surveyId}`,
+      method: "GET",
+      ...params,
+    });
+  /**
+   * No description
+   *
+   * @tags Survey API
+   * @name EditSurvey
+   * @request POST:/survey/{surveyId}
+   */
+  editSurvey = (
+    surveyId: string,
+    data: DetailedSurveyResDTO,
+    params: RequestParams = {},
+  ) =>
+    this.request<DetailedSurveyResDTO, any>({
+      path: `/survey/${surveyId}`,
       method: "POST",
       body: data,
       type: ContentType.Json,
@@ -97,19 +114,6 @@ export class Survey<
       method: "POST",
       body: data,
       type: ContentType.Json,
-      ...params,
-    });
-  /**
-   * No description
-   *
-   * @tags Survey API
-   * @name GetSurvey
-   * @request GET:/survey/{surveyId}
-   */
-  getSurvey = (surveyId: string, params: RequestParams = {}) =>
-    this.request<DetailedSurveyResDTO, any>({
-      path: `/survey/${surveyId}`,
-      method: "GET",
       ...params,
     });
 }

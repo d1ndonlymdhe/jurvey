@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Entity
@@ -41,6 +42,7 @@ public class SurveySchema {
             mappedBy = "survey",
             fetch = FetchType.LAZY
     )
+    @OrderColumn(name = "position")
     @Getter
     private List<SurveyDataPoint> dataPointList = new ArrayList<>();
 
@@ -51,6 +53,7 @@ public class SurveySchema {
     @LastModifiedDate
     @Setter
     private LocalDateTime updatedAt;
+
 
     public SurveySchema(String name, String title, String description) {
         this.name = name;

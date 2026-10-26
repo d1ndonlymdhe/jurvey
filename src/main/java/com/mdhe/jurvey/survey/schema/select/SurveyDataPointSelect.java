@@ -25,8 +25,8 @@ public class SurveyDataPointSelect extends SurveyDataPoint {
     )
     private List<SurveySelectValue> allowedValues = new ArrayList<>();
 
-    public SurveyDataPointSelect(String label, SurveySchema survey){
-        super(label, survey);
+    public SurveyDataPointSelect(String label, SurveySchema survey, Integer position){
+        super(label, survey, position);
         this.allowedValues = new ArrayList<>();
         survey.getDataPointList().add(this);
     }

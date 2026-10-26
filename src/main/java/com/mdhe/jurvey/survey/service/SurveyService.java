@@ -78,49 +78,53 @@ public class SurveyService {
     public DetailedSurveyResDTO updateSurveyFromDraft(DetailedSurveyResDTO draftSurvey){
         String surveyId = draftSurvey.id;
 
-        SurveySchema existing = this.assertSurveyExists(surveyId);
+        SurveySchema surveyFromDb = this.assertSurveyExists(surveyId);
 
         String surveyName = draftSurvey.name;
         String surveyDescription = draftSurvey.description;
         String surveyTitle = draftSurvey.title;
 
-        existing.setName(surveyName);
-        existing.setDescription(surveyDescription);
-        existing.setTitle(surveyTitle);
+        surveyFromDb.setName(surveyName);
+        surveyFromDb.setDescription(surveyDescription);
+        surveyFromDb.setTitle(surveyTitle);
 
         var draftDatapoints = draftSurvey.dataPoints;
         // Ensure all labels are unique
-        var asSet =  draftDatapoints.stream().map(d->d.label).collect(Collectors.toSet());
-        if(asSet.size() != draftDatapoints.size()){
+        var asSetLabels =  draftDatapoints.stream().map(d->d.label).collect(Collectors.toSet());
+        if(asSetLabels.size() != draftDatapoints.size()){
             throw new RuntimeException("All labels should be unique");
         }
+        var asSetPositions = draftDatapoints.stream().map(d->d.position).collect(Collectors.toSet());
+        if(asSetPositions.size() != draftDatapoints.size()){
+            throw new RuntimeException("All positions should be unique");
+        }
 
-        Map<String,DatapointDTO> draftDatapointsAsMap = draftSurvey.dataPoints.stream().collect(Collectors.toMap(d->d.id,d->d));
-
-        Map<String,SurveyDataPoint> datapointsToEditMap = new HashMap<>();
+        Map<String,DatapointDTO> dataPointsToEditMap = draftSurvey.dataPoints.stream().filter(d-> !d.id.isEmpty()).collect(Collectors.toMap(d->d.id, d->d));
 
         List<String> dataPointIdsToFetchFromDB = new ArrayList<>();
         for (var draftDataPoint : draftDatapoints){
             if(draftDataPoint.id!=null && !draftDataPoint.id.isEmpty()){
                 dataPointIdsToFetchFromDB.add(draftDataPoint.id);
             }else{
-                datapointsToEditMap.put(draftDataPoint.id, SurveyDataPointService.fromDto(draftDataPoint,existing));
+                // For pure draft only need to initialize
+                var _newDto = SurveyDataPointService.fromDto(draftDataPoint,surveyFromDb);
             }
         }
-
-        datapointsToEditMap.putAll(
-                surveyDataPointRepository.findByIdInAndSurveyId(dataPointIdsToFetchFromDB,existing.getId())
+        var dbDataPoints = (
+                surveyDataPointRepository.findByIdInAndSurveyId(dataPointIdsToFetchFromDB,surveyFromDb.getId())
                         .stream()
                         .collect(Collectors.toMap(SurveyDataPoint::getId, dataPoint-> dataPoint))
         );
 
-        datapointsToEditMap.forEach((dataPointId,surveyDataPoint)->{
-            var draftForId = draftDatapointsAsMap.get(dataPointId);
+        dbDataPoints.forEach((surveyDataPointId, surveyDataPoint)->{
+            var draftForId = dataPointsToEditMap.get(surveyDataPointId);
+            // Just updating the label right now
             surveyDataPoint.setLabel(draftForId.label);
+            surveyDataPoint.setPosition(draftForId.position);
         });
 
 
-        surveyRepository.save(existing);
+        surveyRepository.save(surveyFromDb);
 
         Optional<SurveySchema> result = surveyRepository.findById(surveyId);
 

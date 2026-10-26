@@ -44,7 +44,8 @@ public class SurveyDataPointService {
     public DatapointDTO addTextDataPoint(String surveyId, String label){
         checkDataPointExists(surveyId,label);
         var survey = surveyService.getSurveyById(surveyId);
-        var textSurveyDataPoint = new SurveyDataPointText(label,survey);
+        var nextPosition = surveyDataPointRepository.findMaxPositionBySurveyId(surveyId);
+        var textSurveyDataPoint = new SurveyDataPointText(label,survey,nextPosition);
         log.debug("Save text datapoint");
         surveyDataPointRepository.save(textSurveyDataPoint);
         log.debug("Complete save text datapoint");
@@ -55,7 +56,8 @@ public class SurveyDataPointService {
     public DatapointDTO addSelectDataPoint(String surveyId, String label, List<String> allowedValues){
         checkDataPointExists(surveyId,label);
         var survey = surveyService.getSurveyById(surveyId);
-        var selectSurveyDataPoint = new SurveyDataPointSelect(label,survey);
+        var nextPosition = surveyDataPointRepository.findMaxPositionBySurveyId(surveyId);
+        var selectSurveyDataPoint = new SurveyDataPointSelect(label,survey,nextPosition);
         surveyDataPointRepository.save(selectSurveyDataPoint);
         var createdAllowedValues = surveySelectValueService.createMultiple(selectSurveyDataPoint.getId(),allowedValues);
         selectSurveyDataPoint.getAllowedValues().addAll(createdAllowedValues);
@@ -71,10 +73,10 @@ public class SurveyDataPointService {
      */
     public static SurveyDataPoint fromDto(DatapointDTO dto, SurveySchema survey){
         if(dto instanceof TextDataPointDTO){
-            return new SurveyDataPointText(dto.label,survey);
+            return new SurveyDataPointText(dto.label,survey,dto.position);
         }
         if(dto instanceof SelectDataPointDTO){
-            SurveyDataPointSelect selectDataPoint = new SurveyDataPointSelect(dto.label,survey);
+            SurveyDataPointSelect selectDataPoint = new SurveyDataPointSelect(dto.label,survey,dto.position);
             List<String> allowedValues = ((SelectDataPointDTO) dto).allowedValues;
             allowedValues.forEach(allowedValue->{
                 new SurveySelectValue(allowedValue,selectDataPoint);
