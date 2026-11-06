@@ -1,10 +1,10 @@
-import {createAsyncThunk, createSlice, PayloadAction} from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
     DatapointDTO,
     DetailedSurveyResDTO,
 } from "../api/data-contracts.ts";
-import {LoadingState, LoadingStateType, SurveyAPI} from "./surveysSlice.ts";
-import {createAppSelector} from "../hooks.ts";
+import { LoadingState, LoadingStateType, SurveyAPI } from "./surveysSlice.ts";
+import { createAppSelector } from "../hooks.ts";
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 type DraftType<T> = DistributiveOmit<T, "id"> & {
@@ -19,7 +19,7 @@ export type DraftDataPoint = DraftType<DatapointDTO> & {
     position: number,
 }
 export type DraftSurvey = DraftType<Omit<DetailedSurveyResDTO, "dataPoints">> & {
-    dataPoints: DraftDataPoint[]
+    dataPoints: Record<string, DraftDataPoint>
 }
 
 export function NewDraftSurvey(): DraftSurvey {
@@ -31,7 +31,7 @@ export function NewDraftSurvey(): DraftSurvey {
         name: "",
         description: "",
         title: "",
-        dataPoints: [],
+        dataPoints: {},
         questionCount: 0,
     }
 }
@@ -76,10 +76,11 @@ function DraftDataPointToDataPoint(draftDataPoint: DraftDataPoint): DetailedSurv
 }
 
 function DraftSurveyToSurveyRes(draftSurvey: DraftSurvey): DetailedSurveyResDTO {
+    const dataPoints = Object.values(draftSurvey.dataPoints).map(DraftDataPointToDataPoint);
     return {
         id: draftSurvey.id || "",
-        dataPoints: draftSurvey.dataPoints.map(d => DraftDataPointToDataPoint(d)),
-        questionCount: draftSurvey.dataPoints.length,
+        dataPoints: dataPoints,
+        questionCount: dataPoints.length,
         description: draftSurvey.description,
         name: draftSurvey.name,
         title: draftSurvey.title,
@@ -91,7 +92,7 @@ export const createFromDraft = createAsyncThunk<DetailedSurveyResDTO, DraftSurve
 })
 
 export const editFromDraft = createAsyncThunk<DetailedSurveyResDTO, DraftSurvey>("surveys/draft/edit", async (data: DraftSurvey) => {
-    const r = SurveyAPI.editSurvey(data.draftId,DraftSurveyToSurveyRes(data));
+    const r = SurveyAPI.editSurvey(data.draftId, DraftSurveyToSurveyRes(data));
     return await r;
 })
 
@@ -111,17 +112,17 @@ export const draftSurveySlice = createSlice({
     },
     reducers: {
         saveDraftSurvey: (state, action: PayloadAction<DraftSurvey>) => {
-            const {draftId} = action.payload;
+            const { draftId } = action.payload;
             state.data[draftId] = action.payload;
             state.data[draftId].syncStatus = LoadingState.IDLE;
         },
         addDatapoint(state, action: PayloadAction<DraftDataPoint>) {
-            const {surveyId, draftId} = action.payload;
+            const { surveyId, draftId } = action.payload;
             const existing = state.data[surveyId];
             if (existing) {
-                const existingDatapoint = existing.dataPoints.find(d => d.draftId == draftId);
+                const existingDatapoint = existing.dataPoints[draftId];
                 if (!existingDatapoint) {
-                    existing.dataPoints.push(action.payload)
+                    existing.dataPoints[draftId] = action.payload;
                 }
             }
         },
@@ -146,8 +147,8 @@ export const draftSurveySlice = createSlice({
                     // Point the draftId to real id too (may break need to find correct usage)
                     existing.draftId = res.id;
                     // Later update database itself with ordering
-                    existing.dataPoints = (res.dataPoints as DatapointDTO[]).map((d,idx) => {
-                        return {
+                    existing.dataPoints = Object.fromEntries((res.dataPoints as DatapointDTO[]).map((d, idx) => {
+                        return [d.id, {
                             id: d.id,
                             draftId: d.id,
                             surveyId: d.surveyId,
@@ -157,8 +158,8 @@ export const draftSurveySlice = createSlice({
                             allowedValues: d.type == "select" ? d.allowedValues : [],
                             syncErrorMsg: null,
                             position: idx
-                        } satisfies DraftDataPoint
-                    })
+                        } satisfies DraftDataPoint]
+                    }))
                 }
             })
             .addCase(editFromDraft.pending, (state, action) => {
@@ -178,8 +179,8 @@ export const draftSurveySlice = createSlice({
                     existing.id = res.id;
                     // Point the draftId to real id too (may break need to find correct usage)
                     existing.draftId = res.id;
-                    existing.dataPoints = (res.dataPoints as DatapointDTO[]).map((d,idx) => {
-                        return {
+                    existing.dataPoints = Object.fromEntries((res.dataPoints as DatapointDTO[]).map((d, idx) => {
+                        return [d.id, {
                             id: d.id,
                             draftId: d.id,
                             surveyId: d.surveyId,
@@ -189,8 +190,8 @@ export const draftSurveySlice = createSlice({
                             allowedValues: d.type == "select" ? d.allowedValues : [],
                             syncErrorMsg: null,
                             position: idx
-                        } satisfies DraftDataPoint
-                    })
+                        } satisfies DraftDataPoint]
+                    }))
                 }
             })
             .addCase(
@@ -202,7 +203,7 @@ export const draftSurveySlice = createSlice({
                             draftId: surveyId,
                             syncStatus: LoadingState.LOADING,
                             questionCount: 0,
-                            dataPoints: [],
+                            dataPoints: {},
                             syncErrorMsg: null,
                             id: surveyId,
                             description: "",
@@ -216,40 +217,40 @@ export const draftSurveySlice = createSlice({
                 }
             )
             .addCase(fetchDetailedSurvey.fulfilled, (state, action) => {
-                    const res = action.payload;
-                    const alreadyIncluded = state.data[res.id]
-                    if (!alreadyIncluded) {
-                        state.data[res.id] = {
-                            draftId: res.id,
-                            ...res,
-                            syncStatus: LoadingState.LOADED,
-                            syncErrorMsg: null,
-                            dataPoints: res.dataPoints.map(d => {
-                                return {
-                                    ...d,
-                                    syncErrorMsg: null,
-                                    syncStatus: LoadingState.LOADED,
-                                    draftId: d.id
-                                } as DraftDataPoint
-                            })
-                        }
-                    } else {
-                        Object.assign(alreadyIncluded,{
-                            draftId: res.id,
-                            ...res,
-                            syncStatus: LoadingState.LOADED,
-                            syncErrorMsg: null,
-                            dataPoints: res.dataPoints.map(d => {
-                                return {
-                                    ...d,
-                                    syncErrorMsg: null,
-                                    syncStatus: LoadingState.LOADED,
-                                    draftId: d.id
-                                } as DraftDataPoint
-                            })
-                        });
+                const res = action.payload;
+                const alreadyIncluded = state.data[res.id]
+                if (!alreadyIncluded) {
+                    state.data[res.id] = {
+                        draftId: res.id,
+                        ...res,
+                        syncStatus: LoadingState.LOADED,
+                        syncErrorMsg: null,
+                        dataPoints: Object.fromEntries(res.dataPoints.map(d => {
+                            return [d.id, {
+                                ...d,
+                                syncErrorMsg: null,
+                                syncStatus: LoadingState.LOADED,
+                                draftId: d.id
+                            } as DraftDataPoint]
+                        }))
                     }
+                } else {
+                    Object.assign(alreadyIncluded, {
+                        draftId: res.id,
+                        ...res,
+                        syncStatus: LoadingState.LOADED,
+                        syncErrorMsg: null,
+                        dataPoints: res.dataPoints.map(d => {
+                            return {
+                                ...d,
+                                syncErrorMsg: null,
+                                syncStatus: LoadingState.LOADED,
+                                draftId: d.id
+                            } as DraftDataPoint
+                        })
+                    });
                 }
+            }
             )
             .addCase(fetchDetailedSurvey.rejected, (state, action) => {
                 const surveyId = action.meta.arg;
@@ -259,7 +260,7 @@ export const draftSurveySlice = createSlice({
                         draftId: surveyId,
                         syncStatus: LoadingState.ERROR,
                         questionCount: 0,
-                        dataPoints: [],
+                        dataPoints: {},
                         syncErrorMsg: action.error.message || null,
                         id: surveyId,
                         description: "",
@@ -277,4 +278,4 @@ export const draftSurveySlice = createSlice({
 })
 
 export default draftSurveySlice.reducer;
-export const {saveDraftSurvey} = draftSurveySlice.actions;
+export const { saveDraftSurvey } = draftSurveySlice.actions;

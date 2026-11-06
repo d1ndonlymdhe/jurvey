@@ -62,7 +62,7 @@ function RouteComponent() {
                     </Text>
                     {
                         survey.dataPoints.map((dp) => {
-                            return <TextInput label={dp.label}/>
+                            return <TextInput key={dp.id} label={dp.label}/>
                         })
                     }
                     <Button onClick={() => {
@@ -79,7 +79,7 @@ function RouteComponent() {
     </Container>
 }
 
-function AddTextDataPoint({surveyId, closeFn}: { surveyId: string, closeFn?: () => void }) {
+function AddTextDataPoint({surveyId, closeFn}: Readonly<{ surveyId: string, closeFn?: () => void }>) {
     const {data:survey,status} = useSurvey(surveyId);
     const surveyLoading = status == LoadingState.LOADING || status == LoadingState.IDLE;
     const dispatch = useAppDispatch();
@@ -102,7 +102,7 @@ function AddTextDataPoint({surveyId, closeFn}: { surveyId: string, closeFn?: () 
                 surveyId: surveyId,
                 label: label
             })).unwrap().then(_r=>{
-                closeFn && closeFn()
+                closeFn?.()
             })
 
         }}>
