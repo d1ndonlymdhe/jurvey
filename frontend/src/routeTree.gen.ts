@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as NewCreateChar123DraftIdChar125RouteImport } from './routes/new/create.{-$draftId}'
 import { Route as SurveyCreateChar123DraftIdChar125RouteImport } from './routes/survey/create.{-$draftId}'
 import { Route as SurveyEditSurveyIdRouteImport } from './routes/survey/edit.$surveyId'
 
@@ -24,6 +25,12 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NewCreateChar123DraftIdChar125Route =
+  NewCreateChar123DraftIdChar125RouteImport.update({
+    id: '/new/create/{-$draftId}',
+    path: '/new/create/{-$draftId}',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const SurveyCreateChar123DraftIdChar125Route =
   SurveyCreateChar123DraftIdChar125RouteImport.update({
     id: '/survey/create/{-$draftId}',
@@ -39,12 +46,14 @@ const SurveyEditSurveyIdRoute = SurveyEditSurveyIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/new/create/{-$draftId}': typeof NewCreateChar123DraftIdChar125Route
   '/survey/create/{-$draftId}': typeof SurveyCreateChar123DraftIdChar125Route
   '/survey/edit/$surveyId': typeof SurveyEditSurveyIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/new/create/{-$draftId}': typeof NewCreateChar123DraftIdChar125Route
   '/survey/create/{-$draftId}': typeof SurveyCreateChar123DraftIdChar125Route
   '/survey/edit/$surveyId': typeof SurveyEditSurveyIdRoute
 }
@@ -52,19 +61,30 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/new/create/{-$draftId}': typeof NewCreateChar123DraftIdChar125Route
   '/survey/create/{-$draftId}': typeof SurveyCreateChar123DraftIdChar125Route
   '/survey/edit/$surveyId': typeof SurveyEditSurveyIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/about' | '/survey/create/{-$draftId}' | '/survey/edit/$surveyId'
+    | '/'
+    | '/about'
+    | '/new/create/{-$draftId}'
+    | '/survey/create/{-$draftId}'
+    | '/survey/edit/$surveyId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/survey/create/{-$draftId}' | '/survey/edit/$surveyId'
+  to:
+    | '/'
+    | '/about'
+    | '/new/create/{-$draftId}'
+    | '/survey/create/{-$draftId}'
+    | '/survey/edit/$surveyId'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/new/create/{-$draftId}'
     | '/survey/create/{-$draftId}'
     | '/survey/edit/$surveyId'
   fileRoutesById: FileRoutesById
@@ -72,6 +92,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  NewCreateChar123DraftIdChar125Route: typeof NewCreateChar123DraftIdChar125Route
   SurveyCreateChar123DraftIdChar125Route: typeof SurveyCreateChar123DraftIdChar125Route
   SurveyEditSurveyIdRoute: typeof SurveyEditSurveyIdRoute
 }
@@ -90,6 +111,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/new/create/{-$draftId}': {
+      id: '/new/create/{-$draftId}'
+      path: '/new/create/{-$draftId}'
+      fullPath: '/new/create/{-$draftId}'
+      preLoaderRoute: typeof NewCreateChar123DraftIdChar125RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/survey/create/{-$draftId}': {
@@ -112,6 +140,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  NewCreateChar123DraftIdChar125Route: NewCreateChar123DraftIdChar125Route,
   SurveyCreateChar123DraftIdChar125Route:
     SurveyCreateChar123DraftIdChar125Route,
   SurveyEditSurveyIdRoute: SurveyEditSurveyIdRoute,

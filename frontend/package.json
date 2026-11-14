@@ -31,6 +31,7 @@
     "date-fns": "^4.4.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-hook-form": "^7.91.0",
     "react-redux": "^9.3.0",
     "shadcn": "^4.23.0",
     "tailwindcss": "^4.3.3",
