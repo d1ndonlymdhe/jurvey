@@ -36,7 +36,7 @@ function RouteComponent() {
     const navigate = useNavigate();
 
 
-    const [isAddTextQuestionModalOpen, setisAddTextQuestionModalOpen] = useState(false);
+    const [isAddTextQuestionModalOpen, setIsAddTextQuestionModalOpen] = useState(false);
     const [isAddSelectQuestionModalOpen, setIsAddSelectQuestionModalOpen] = useState(false);
 
     const dispatch = useAppDispatch()
@@ -327,7 +327,7 @@ function RouteComponent() {
                                 <div className="flex flex-col gap-2">
                                     <div className="flex flex-row gap-2">
                                         <Button onClick={() => {
-                                            setisAddTextQuestionModalOpen(true)
+                                            setIsAddTextQuestionModalOpen(true)
                                         }} type={"button"}>
                                             Add Text Question
                                         </Button>
@@ -340,7 +340,7 @@ function RouteComponent() {
 
 
                                     <Dialog open={isAddTextQuestionModalOpen}
-                                            onOpenChange={setisAddTextQuestionModalOpen}>
+                                            onOpenChange={setIsAddTextQuestionModalOpen}>
                                         <DialogContent>
                                             <ManageTextDataPoint
                                                 init={null}

@@ -9,7 +9,7 @@ import {
     selectDraftSurveyWithId,
     type DraftDataPoint
 } from "@/src/slices/draftSurveySlice.ts";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card.tsx";
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Field, FieldDescription, FieldLabel, FieldSet } from '@/components/ui/field';
@@ -18,10 +18,15 @@ import { FormProvider, useFieldArray, useForm, useFormContext } from 'react-hook
 import { Button } from '@/components/ui/button';
 import { Empty, EmptyHeader } from "@/components/ui/empty";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { CheckFatIcon, SelectionAllIcon, TextAaIcon } from '@phosphor-icons/react';
-import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from '@/components/ui/item';
+import { CheckFatIcon, TextAaIcon } from '@phosphor-icons/react';
+import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from '@/components/ui/item';
 import type { DatapointDTO } from '@/src/api/data-contracts';
-import { Label } from '@/components/ui/label';
+import { RiRecordCircleLine } from '@remixicon/react';
+import { DndContext } from '@dnd-kit/core';
+import { arrayMove, SortableContext, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { DevTool } from "@hookform/devtools";
+
 export const Route = createFileRoute('/new/create/{-$draftId}')({
     component: RouteComponent,
 })
@@ -32,11 +37,9 @@ function RouteComponent() {
     const dispatch = useAppDispatch()
 
     const selectedDraft = useAppSelector(state => selectDraftSurveyWithId(state, draftId || null))
-    // const [draftSurveyEditCopy, setDraftSurveyEditCopy] = useState<DraftSurvey | undefined>(!draftId ? selectedDraft ? selectedDraft : NewDraftSurvey() : undefined)
-    // const [draftSurveyOriginalCopy, setDraftSurveyOriginal] = useState<DraftSurvey | undefined>(draftSurveyEditCopy);
 
     const [isSurveyDetailsModalOpen, setIsSurveyDetailsModalOpen] = useState(false);
-    const { reset, getValues, setValue, ...rest } = useForm<DraftSurvey>({
+    const { control, reset, getValues, setValue, ...rest } = useForm<DraftSurvey>({
         defaultValues: NewDraftSurvey()
     })
     const [preview, _setDraftSurvey] = useState<DraftSurvey>(getValues())
@@ -62,7 +65,7 @@ function RouteComponent() {
     const addQuestion = (type: DatapointDTO["type"]) => {
         const draftSurvey = getValues();
         console.log(draftSurvey)
-        const newPosition = draftSurvey.questionCount;
+        const newPosition = Object.keys(draftSurvey.dataPoints).length;
         const label = `Question ${newPosition + 1}`
         const newDataPoint = type == "text" ? NewDraftTextDataPoint(label, draftSurvey.draftId, newPosition) : NewDraftSelectDatapoint(label, [], draftSurvey.draftId, newPosition);
         setValue("dataPoints", {
@@ -78,8 +81,8 @@ function RouteComponent() {
         <div className={"h-full w-full bg-red-200"}>
 
         </div>
-        <FormProvider {...{ reset, setValue, getValues, ...rest }}>
-
+        <FormProvider {...{ control, reset, setValue, getValues, ...rest }}>
+            <DevTool control={control}></DevTool>
             <div className={"h-full w-full"}>
                 <div className={"h-full w-full p-8 flex flex-col gap-4"}>
                     <Card>
@@ -121,10 +124,15 @@ function RouteComponent() {
                     {Object.values(preview.dataPoints).map(d => {
                         if (d.type === "text") {
                             return <EditTextDataPoint key={d.draftId} datapoint={d} saveFn={savePreview}></EditTextDataPoint>
-                        } else {
-                            return null;
+                        } else if (d.type === "select") {
+                            return <EditSelectDataPoint key={d.draftId} datapoint={d} saveFn={savePreview}></EditSelectDataPoint>;
                         }
                     })}
+                    {
+                        preview.questionCount > 0 &&
+                        <AddQuestionButton addQuestion={addQuestion} />
+                    }
+
                 </div>
             </div>
         </FormProvider>
@@ -140,7 +148,7 @@ type DiscriminatedDataPoint<T extends DraftDataPoint["type"]> = Extract<DraftDat
 function EditTextDataPoint({ datapoint, saveFn }: { datapoint: DiscriminatedDataPoint<"text">, saveFn: () => void }) {
     const { register, setValue } = useFormContext<DraftSurvey>()
     const [editMode, setEditMode] = useState(false);
-    return <Card className='px-4 py-2 focus-within:outline-2 focus-within:outline-black'>
+    return <Card className={`px-4 py-2 ${editMode ? "outline-2 outline-black" : ""}`}>
         <div>
             <div className='grid grid-cols-[1fr_9fr] gap-2 items-center'>
                 <div className='flex flex-row items-start justify-center gap-2'>
@@ -150,12 +158,11 @@ function EditTextDataPoint({ datapoint, saveFn }: { datapoint: DiscriminatedData
                     <div className='flex h-full px-2 py-2 items-center justify-center'>
                         <TextAaIcon size={20} />
                     </div>
-
                 </div>
-                <div className='w-full flex flex-row items-stretch'>
+                <div className='w-full flex flex-row items-stretch gap-4'>
                     {
                         editMode ?
-                            <Input {...register(`dataPoints.${datapoint.draftId}.label`)}></Input>
+                            <Input {...register(`dataPoints.${datapoint.draftId}.label`)} autoFocus></Input>
                             : <p className='flex-2'>{datapoint.label}</p>
                     }
                     <div className='flex flex-row gap-2'>
@@ -179,6 +186,164 @@ function EditTextDataPoint({ datapoint, saveFn }: { datapoint: DiscriminatedData
         </div>
     </Card>
 }
+
+function EditSelectDataPoint({ datapoint, saveFn: _saveFn }: { datapoint: DiscriminatedDataPoint<"select">, saveFn: () => void }) {
+    const { register, setValue, getValues } = useFormContext<DraftSurvey>()
+    const [editMode, setEditMode] = useState(false);
+    const initialAllowedValuesWithRandId = datapoint.allowedValues.map((v) => ({
+        value: v,
+        id: crypto.randomUUID()
+    }))
+    const [internalDraftAllowedValues, setInternalDraftAllowedValues] = useState(initialAllowedValuesWithRandId);
+    const { append, insert, move, update, remove } = useFieldArray({
+        name: `dataPoints.${datapoint.draftId}.allowedValues`
+    })
+
+
+    const saveFn = () => {
+        setEditMode(false)
+        setInternalDraftAllowedValues(getValues(`dataPoints.${datapoint.draftId}.allowedValues`).map((v) => {
+            return {
+                value: v,
+                id: crypto.randomUUID()
+            }
+        }))
+        // setValue(`dataPoints.${datapoint.draftId}.allowedValues`, internalDraftAllowedValues.map((v)=>v.value))
+        _saveFn()
+    }
+
+    const discardChanges = () => {
+        setEditMode(false)
+        setValue(`dataPoints.${datapoint.draftId}.label`, datapoint.label)
+        setInternalDraftAllowedValues(initialAllowedValuesWithRandId)
+        setValue(`dataPoints.${datapoint.draftId}.allowedValues`, datapoint.allowedValues)
+        _saveFn()
+    }
+
+    return <Card className={`px-4 py-2 ${editMode ? "outline-2 outline-black" : ""}`}>
+        <div className='flex flex-col gap-2'>
+            <div className='grid grid-cols-[1fr_9fr] gap-2 items-center'>
+                <div className='flex flex-row items-start justify-center gap-2'>
+                    <div className='bg-zinc-200 rounded-md px-2 py-2'>
+                        Q{datapoint.position + 1}
+                    </div>
+                    <div className='flex h-full px-2 py-2 items-center justify-center'>
+                        <RiRecordCircleLine size={20} />
+                    </div>
+                </div>
+                <div className='w-full flex flex-row items-stretch gap-4'>
+                    {
+                        editMode ?
+                            <Input {...register(`dataPoints.${datapoint.draftId}.label`)} autoFocus></Input>
+                            : <p className='flex-2'>{datapoint.label}</p>
+                    }
+                    <div className='flex flex-row gap-2'>
+                        {
+                            editMode ? <>
+                                <button className='flex-1' onClick={() => {
+                                    saveFn();
+                                    setEditMode(false)
+                                }}>Save</button>
+                                <button className='flex-1' onClick={() => {
+                                    discardChanges()
+                                }}>Discard</button>
+                            </> :
+                                <button className='flex-1' onClick={() => { setEditMode(true) }}>Edit</button>
+                        }
+                    </div>
+                </div>
+            </div>
+            <DndContext
+                onDragEnd={(dragEvent) => {
+                    const active = dragEvent.active;
+                    const over = dragEvent.over;
+                    if (!over || active.id === over.id) return;
+                    const oldIndex = internalDraftAllowedValues.findIndex((v) => v.id === active.id)
+                    const newIndex = internalDraftAllowedValues.findIndex((v) => v.id === over.id)
+                    if (oldIndex < 0 || newIndex < 0) return;
+                    move(oldIndex, newIndex)
+                    // Reorder internal list, keeping ids stable and values in sync with any unsaved edits in the form
+                    const currentValues = getValues(`dataPoints.${datapoint.draftId}.allowedValues`)
+                    const synced = internalDraftAllowedValues.map((v, i) => ({ ...v, value: currentValues[i] ?? v.value }))
+                    setInternalDraftAllowedValues(arrayMove(synced, oldIndex, newIndex))
+                }}
+            >
+                <SortableContext items={internalDraftAllowedValues}>
+                {
+                    internalDraftAllowedValues.map((option, index) => {
+                        return <SelectOptionEdit parentEditMode={editMode} key={option.id} option={option} index={index} datapointDraftId={datapoint.draftId} deleteFn={() => {
+                            remove(index)
+                            setInternalDraftAllowedValues([...internalDraftAllowedValues.slice(0, index), ...internalDraftAllowedValues.slice(index + 1)])
+                        }}></SelectOptionEdit>
+                    })
+                }
+                    </SortableContext>
+            </DndContext>
+            {
+                editMode &&
+                <Button onClick={() => {
+                    append("New Option")
+                    setInternalDraftAllowedValues([...internalDraftAllowedValues, { value: "New Option", id: crypto.randomUUID() }])
+                }}>Add Option</Button>
+            }
+        </div>
+    </Card>
+}
+
+
+function SelectOptionEdit({
+    option,
+    datapointDraftId,
+    index,
+    deleteFn,
+    parentEditMode
+}: { option: { value: string, id: string }, index: number, datapointDraftId: string, deleteFn: () => void, parentEditMode: boolean }) {
+    const { register, setValue } = useFormContext<DraftSurvey>()
+    const { attributes, listeners, transform, transition, setNodeRef } = useSortable({
+        id: option.id
+    })
+
+    const editMode = parentEditMode;
+    const [hasChanged, setHasChanged] = useState(false);
+
+    return <div className='w-full flex flex-row items-stretch gap-4' ref={setNodeRef}
+        style={{
+            transform: CSS.Transform.toString(transform),
+            transition,
+        }}>
+        {
+            editMode ? <button className="active:cursor-grabbing" {...attributes} {...listeners} style={{ touchAction: "none" }}>
+                ⠿
+            </button> : null
+        }
+        {
+            editMode ?
+                <Input {...register(`dataPoints.${datapointDraftId}.allowedValues.${index}`, {
+                    onChange: () => {
+                        if (!hasChanged) {
+                            setHasChanged(true)
+                        }
+                    }
+                })} autoFocus></Input>
+                : <p className='flex-2'>{option.value}</p>
+        }
+        <div className='flex flex-row gap-2'>
+            {
+                editMode ? <>
+                    {
+                        hasChanged &&
+                        <button className='flex-1' onClick={() => {
+                            setHasChanged(false)
+                            setValue(`dataPoints.${datapointDraftId}.allowedValues.${index}`, option.value)
+                        }}>Discard</button>
+                    }
+                    <button className='flex-1' onClick={() => { deleteFn() }}>Delete</button>
+                </> : null
+            }
+        </div>
+    </div>
+}
+
 
 function AddQuestionButton({
     addQuestion
