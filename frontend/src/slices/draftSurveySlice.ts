@@ -162,6 +162,14 @@ export const draftSurveySlice = createSlice({
                     }))
                 }
             })
+            .addCase(createFromDraft.rejected, (state, action) => {
+                const draftSurveyId = action.meta.arg.draftId;
+                const existing = state.data[draftSurveyId]
+                if (existing) {
+                    existing.syncStatus = LoadingState.ERROR;
+                    existing.syncErrorMsg = action.error.message || null;
+                }
+            })
             .addCase(editFromDraft.pending, (state, action) => {
                 const draftSurveyId = action.meta.arg.draftId;
                 const existing = state.data[draftSurveyId]
@@ -192,6 +200,14 @@ export const draftSurveySlice = createSlice({
                             position: idx
                         } satisfies DraftDataPoint]
                     }))
+                }
+            })
+            .addCase(editFromDraft.rejected, (state, action) => {
+                const draftSurveyId = action.meta.arg.draftId;
+                const existing = state.data[draftSurveyId]
+                if (existing) {
+                    existing.syncStatus = LoadingState.ERROR;
+                    existing.syncErrorMsg = action.error.message || null;
                 }
             })
             .addCase(

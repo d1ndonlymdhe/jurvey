@@ -234,7 +234,7 @@ function DraftTableRow(draft: DraftSurvey & { index: number }) {
         <Table.Td>{draft.questionCount}</Table.Td>
         <Table.Td>{draft.syncStatus}</Table.Td>
         <Table.Td>
-            <Link to={"/survey/create/{-$draftId}"} params={{draftId: draft.draftId}}>
+            <Link to={"/new/create/{-$draftId}"} params={{draftId:draft.draftId}}>
                 <Button>
                     <PencilLineIcon size={20}/>
                 </Button>
